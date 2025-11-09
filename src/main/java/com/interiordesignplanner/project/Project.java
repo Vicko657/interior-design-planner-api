@@ -16,6 +16,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Models a design project for a client. Each project will have details
@@ -27,6 +30,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "projects")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Project extends AbstractEntity {
 
     // Foreign key to Client entity, many to one bidirectional relationship.
@@ -78,96 +84,10 @@ public class Project extends AbstractEntity {
 
     }
 
-    // Parameterless constructor
-    public Project() {
-
-    }
-
     // Getters
     @Override
     public Long getId() {
         return super.getId();
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public ProjectStatus getStatus() {
-        return status;
-    }
-
-    public Integer getBudget() {
-        return budget;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getMeetingURL() {
-        return meetingURL;
-    }
-
-    public Instant getCompletedAt() {
-        return completedAt;
-    }
-
-    public Client getClient() {
-        return client;
-    }
-
-    public Room getRoom() {
-        return room;
-    }
-
-    // Setters
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public void setStatus(ProjectStatus status) {
-        this.status = status;
-    }
-
-    public void setBudget(Integer budget) {
-        this.budget = budget;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setMeetingURL(String meetingURL) {
-        this.meetingURL = meetingURL;
-    }
-
-    public void setCompletedAt(Instant completedAt) {
-        this.completedAt = completedAt;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
     }
 
 }

@@ -11,6 +11,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Models a room within a project, like a bedroom, living room or bathroom.
@@ -22,6 +25,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "rooms")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Room extends AbstractEntity {
 
     // Foreign key to Project entity, one to one bidirectional relationship.
@@ -60,80 +66,10 @@ public class Room extends AbstractEntity {
 
     }
 
-    // Parameterless constructor
-    public Room() {
-
-    }
-
     // Getters
     @Override
     public Long getId() {
         return super.getId();
-    }
-
-    public RoomType getType() {
-        return type;
-    }
-
-    public Double getLength() {
-        return length;
-    }
-
-    public Double getHeight() {
-        return height;
-    }
-
-    public Double getWidth() {
-        return width;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public String getChecklist() {
-        return checklist;
-    }
-
-    public String getChanges() {
-        return changes;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    // Room | Setters
-    public void setType(RoomType type) {
-        this.type = type;
-    }
-
-    public void setLength(Double length) {
-        this.length = length;
-    }
-
-    public void setHeight(Double height) {
-        this.height = height;
-    }
-
-    public void setWidth(Double width) {
-        this.width = width;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public void setChecklist(String checklist) {
-        this.checklist = checklist;
-    }
-
-    public void setChanges(String changes) {
-        this.changes = changes;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
     }
 
 }

@@ -9,6 +9,9 @@ import com.interiordesignplanner.project.Project;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Models a Client of the interior designer. Stores the client's
@@ -20,6 +23,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "clients")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Client extends AbstractEntity {
 
     // Client's firstname
@@ -55,63 +61,10 @@ public class Client extends AbstractEntity {
         this.notes = notes;
     }
 
-    // Parameterless constructor
-    public Client() {
-
-    }
-
     // Getters
     @Override
     public Long getId() {
         return super.getId();
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    // Setters
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
 }
