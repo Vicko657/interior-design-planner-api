@@ -33,12 +33,12 @@ public abstract class AbstractEntity {
     // Timestamp of the creation of the entity
     @JsonIgnore
     @CreatedDate
-    public Instant createdAt;
+    private Instant createdAt;
 
     // Timestamp of when the entity was last modified
     @JsonIgnore
     @LastModifiedDate
-    public Instant updatedAt;
+    private Instant updatedAt;
 
     // Unique identifier has a getter and cannot be set
     public Long getId() {

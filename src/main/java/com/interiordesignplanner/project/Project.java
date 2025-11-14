@@ -39,35 +39,35 @@ public class Project extends AbstractEntity {
     @ManyToOne
     @JoinColumn(name = "client_id", referencedColumnName = "id")
     @JsonBackReference
-    public Client client;
+    private Client client;
 
     // Name of the project
-    public String projectName;
+    private String projectName;
 
     // Status of the project
     @Enumerated(EnumType.STRING)
-    public ProjectStatus status;
+    private ProjectStatus status;
 
     // Estimated cost of project
-    public Integer budget;
+    private Integer budget;
 
     // The start date and due date to help with planning and progress tracking
-    public LocalDate startDate;
-    public LocalDate dueDate;
+    private LocalDate startDate;
+    private LocalDate dueDate;
 
     // Brief project description to help the designer have an overview
-    public String description;
+    private String description;
 
     // Video conference link for remote project meetings (Google Meets)
-    public String meetingURL;
+    private String meetingURL;
 
     // The timestamp of project completion
-    public Instant completedAt;
+    private Instant completedAt;
 
     // Creates One to One Bidirectional relationship with the room entity
     @OneToOne(mappedBy = "project")
     @JsonManagedReference
-    public Room room;
+    private Room room;
 
     // Constructor
     public Project(String projectName, ProjectStatus status, Integer budget, String description, String meetingURL,

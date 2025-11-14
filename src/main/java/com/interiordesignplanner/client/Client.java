@@ -29,27 +29,27 @@ import lombok.Setter;
 public class Client extends AbstractEntity {
 
     // Client's firstname
-    public String firstName;
+    private String firstName;
 
     // Client's lastname
-    public String lastName;
+    private String lastName;
 
     // Client's email address
-    public String email;
+    private String email;
 
     // Client's phone number
-    public String phone;
+    private String phone;
 
     // Client's full address including streetname, city and postcode
-    public String address;
+    private String address;
 
     // Notes on specific preferences for the client
-    public String notes;
+    private String notes;
 
     // Creates One to Many Bidirectional relationship with the project entity
     @OneToMany(mappedBy = "client")
     @JsonManagedReference
-    public List<Project> projects;
+    private List<Project> projects;
 
     // Constructor
     public Client(String firstName, String lastName, String email, String phone, String address, String notes) {
