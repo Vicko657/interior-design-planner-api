@@ -2,9 +2,12 @@ package com.interiordesignplanner.room;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.interiordesignplanner.exceptions.ProjectNotFoundException;
+import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
 
@@ -23,9 +26,11 @@ import com.interiordesignplanner.project.ProjectService;
 public class RoomService {
 
     // Project Service layer
+    @Autowired
     private final ProjectService projectService;
 
     // Room CRUD Interface
+    @Autowired
     private final RoomRepository roomRepository;
 
     // Constructor
@@ -56,7 +61,7 @@ public class RoomService {
      * @returns rooms with same type
      * @throws RoomNotFoundException if the room type is not found
      */
-    public List<Room> getRoomsByType(String type) throws RoomNotFoundException {
+    public List<Room> getRoomsByType(String type) {
 
         RoomType typeValues = null;
 
@@ -70,7 +75,7 @@ public class RoomService {
         if (typeValues != null) {
             return roomRepository.findRoomsByType(typeValues);
         } else {
-            throw new RoomNotFoundException("Room with type: " + type + " was not found");
+            throw new RoomNotFoundException("roomType", type);
         }
 
     }
@@ -88,7 +93,7 @@ public class RoomService {
      */
     public Room getRoom(Long id) {
         return roomRepository.findById(id)
-                .orElseThrow(() -> new RoomNotFoundException("Room with id: " + id + " was not found"));
+                .orElseThrow(() -> new RoomNotFoundException("roomId", id));
     }
 
     /**
@@ -131,10 +136,10 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return updates room
      */
-    public Room updateRoom(Long id, Room room) throws RoomNotFoundException {
+    public Room updateRoom(Long id, Room room) {
         Room existingRoomId = getRoom(id);
         if (!roomRepository.existsById(id)) {
-            throw new RoomNotFoundException("Room with id " + id + " was not found");
+            throw new RoomNotFoundException("roomId", id);
         } else {
             existingRoomId.setType(room.getType());
             existingRoomId.setHeight(room.getHeight());
@@ -161,10 +166,10 @@ public class RoomService {
      * @return deletes room details
      * @throws RoomNotFoundException if the room doesnt exist
      */
-    public void deleteRoom(Long id) throws RoomNotFoundException {
+    public void deleteRoom(Long id) {
 
         if (!roomRepository.existsById(id)) {
-            throw new RoomNotFoundException("Room with id " + id + " was not found");
+            throw new RoomNotFoundException("roomId", id);
         }
         roomRepository.deleteById(id);
 
@@ -182,15 +187,18 @@ public class RoomService {
      * 
      * @param projectId project's unique identifier
      * @param roomId    room's unique identifier
-     * @throws RoomNotFoundException if the room doesnt exist
+     * @throws RoomNotFoundException    if the room doesn't exist
+     * @throws ProjectNotFoundException if the project doesn't exist
      * @return room is reassigned
      */
-    public Room reassignProject(Long projectId, Long roomId) throws RoomNotFoundException {
+    public Room reassignProject(Long projectId, Long roomId) {
 
         Room existingRoomId = getRoom(roomId);
         Project project = projectService.getProject(projectId);
-        if (existingRoomId == null || projectId == null) {
-            throw new RoomNotFoundException("Room with id " + projectId + " was not found");
+        if (existingRoomId == null) {
+            throw new RoomNotFoundException("roomId", roomId);
+        } else if (projectId == null) {
+            throw new ProjectNotFoundException("projectId", projectId);
         } else {
             project.setRoom(existingRoomId);
             existingRoomId.setProject(project);

@@ -2,7 +2,10 @@ package com.interiordesignplanner.client;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.interiordesignplanner.exceptions.ClientNotFoundException;
 
 /**
  * Client service class provides business logic and operations relating to a
@@ -18,12 +21,8 @@ import org.springframework.stereotype.Service;
 public class ClientService {
 
     // Client CRUD Interface
+    @Autowired
     public ClientRepository clientRepository;
-
-    // Constructor
-    public ClientService(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
-    }
 
     /**
      * Returns all active clients and their details on the system.
@@ -45,7 +44,7 @@ public class ClientService {
      */
     public Client getClient(Long id) {
         return clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException("Client with id " + id + " was not found"));
+                .orElseThrow(() -> new ClientNotFoundException("clientId", id));
     }
 
     /**
@@ -59,11 +58,12 @@ public class ClientService {
      * @param lastName client's lastname
      * @throws ClientNotFoundException if the client is not found
      */
-    public List<Client> getClientsByLastName(String lastName) throws ClientNotFoundException {
+    public Client getClientsByLastName(String lastName) {
 
-        List<Client> clients = clientRepository.findByLastNameIgnoreCase(lastName);
+        Client clients = clientRepository.findByLastNameIgnoreCase(lastName);
+
         if (clients == null) {
-            throw new ClientNotFoundException("No clients found with the lastname" + lastName);
+            throw new ClientNotFoundException("lastname", lastName);
         }
         return clients;
     }
@@ -99,12 +99,12 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return the updated client object
      */
-    public Client updateClient(Long id, Client updateClient) throws ClientNotFoundException {
+    public Client updateClient(Long id, Client updateClient) {
 
         Client existingClientId = getClient(id);
 
         if (!clientRepository.existsById(id)) {
-            throw new ClientNotFoundException("Client with id " + id + " was not found");
+            throw new ClientNotFoundException("clientId", id);
         } else {
             existingClientId.setFirstName(updateClient.getFirstName());
             existingClientId.setLastName(updateClient.getLastName());
@@ -129,9 +129,9 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return client is removed
      */
-    public void deleteClient(Long id) throws ClientNotFoundException {
+    public void deleteClient(Long id) {
         if (!clientRepository.existsById(id)) {
-            throw new ClientNotFoundException("Client with id " + id + " was not found");
+            throw new ClientNotFoundException("clientId", id);
         }
         clientRepository.deleteById(id);
     }

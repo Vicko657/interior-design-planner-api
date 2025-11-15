@@ -84,7 +84,7 @@ public class ClientController {
     @GetMapping(value = "/lastName/{lastName}", produces = "application/json")
     public ResponseEntity<Client> getClientsByLastName(@PathVariable("lastName") String lastName) {
 
-        Client client = clientService.getClientByLastName(lastName);
+        Client client = clientService.getClientsByLastName(lastName);
         return ResponseEntity.ok(client);
 
     }

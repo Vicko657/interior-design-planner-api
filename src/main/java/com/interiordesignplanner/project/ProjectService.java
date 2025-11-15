@@ -3,10 +3,12 @@ package com.interiordesignplanner.project;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientService;
+import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 
 import jakarta.transaction.Transactional;
 
@@ -27,9 +29,11 @@ import jakarta.transaction.Transactional;
 public class ProjectService {
 
     // Project CRUD Interface
+    @Autowired
     private final ProjectRepository projectRepository;
 
     // Client Service layer
+    @Autowired
     private final ClientService clientService;
 
     // Constructor
@@ -60,7 +64,7 @@ public class ProjectService {
      */
     public Project getProject(Long id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectNotFoundException("Project with id: " + id + " was not found"));
+                .orElseThrow(() -> new ProjectNotFoundException("projectId", id));
     }
 
     /**
@@ -75,7 +79,7 @@ public class ProjectService {
      * @param status project status enum
      * @returns projects with same status
      */
-    public List<Project> getProjectsByStatus(String status) throws ProjectNotFoundException {
+    public List<Project> getProjectsByStatus(String status) {
 
         ProjectStatus statusValues = null;
 
@@ -90,7 +94,7 @@ public class ProjectService {
         if (statusValues != null) {
             return projectRepository.findProjectsByStatus(statusValues);
         } else {
-            throw new ProjectNotFoundException("Project with status: " + status + " was not found");
+            throw new ProjectNotFoundException("projectStatus", status);
         }
 
     }
@@ -147,12 +151,12 @@ public class ProjectService {
      * @param project project object to be updated
      * @return updated project
      */
-    public Project updateProject(Long id, Project project) throws ProjectNotFoundException {
+    public Project updateProject(Long id, Project project) {
 
         Project existingProjectId = getProject(id);
 
         if (!projectRepository.existsById(id)) {
-            throw new ProjectNotFoundException("Project with id " + id + " was not found");
+            throw new ProjectNotFoundException("projectId", id);
         } else {
             existingProjectId.setProjectName(project.getProjectName());
             existingProjectId.setBudget(project.getBudget());
@@ -182,9 +186,9 @@ public class ProjectService {
      * @param id project's unique identifier
      * @return project is deleted
      */
-    public void deleteProject(Long id) throws ProjectNotFoundException {
+    public void deleteProject(Long id) {
         if (!projectRepository.existsById(id)) {
-            throw new ProjectNotFoundException("Project with id " + id + " was not found");
+            throw new ProjectNotFoundException("projectId", id);
         }
         projectRepository.deleteById(id);
     }
@@ -202,12 +206,12 @@ public class ProjectService {
      * @param projectId project's unique identifier
      * @return project is reassigned
      */
-    public Project reassignClient(Long clientId, Long projectId)throws ProjectNotFoundException {
+    public Project reassignClient(Long clientId, Long projectId) {
         Project existingProjectId = getProject(projectId);
         Client client = clientService.getClient(clientId);
 
         if (existingProjectId == null || client == null) {
-            throw new ProjectNotFoundException("Project with id " + projectId + " was not found");
+            throw new ProjectNotFoundException("projectId", projectId);
         } else {
             existingProjectId.setClient(client);
         }
