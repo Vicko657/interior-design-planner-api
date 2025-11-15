@@ -1,10 +1,12 @@
 package com.interiordesignplanner.exceptions;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,6 +23,31 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+        /**
+         * MethodArguementNotValidException:
+         * 
+         * Handles @Valid @Validated errors
+         */
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> handleFieldValidationErrors(
+                        MethodArgumentNotValidException e, HttpServletRequest request) {
+
+                List<String> validationResult = new ArrayList<>();
+
+                e.getBindingResult().getAllErrors().forEach(error -> {
+                        String message = error.getDefaultMessage();
+                        validationResult.add(message);
+                });
+
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Bad Request",
+                                "Field Error Exception",
+                                validationResult, null,
+                                LocalDateTime.now(), request.getRequestURI());
+
+                return ResponseEntity.badRequest().body(errorResponse);
+        }
 
         /**
          * EntityNotFoundException:

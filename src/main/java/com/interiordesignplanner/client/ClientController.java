@@ -105,7 +105,7 @@ public class ClientController {
             @ApiResponse(responseCode = "201", description = "Client was created"),
             @ApiResponse(responseCode = "404", description = "Client columns have not been filled") })
     @PostMapping(produces = "application/json")
-    public ResponseEntity<ClientDTO> createClient(@RequestBody ClientCreateDTO clientCreateDTO) {
+    public ResponseEntity<ClientDTO> createClient(@Valid @RequestBody ClientCreateDTO clientCreateDTO) {
 
         ClientDTO savedClient = clientService.createClient(clientCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
@@ -127,7 +127,8 @@ public class ClientController {
             @ApiResponse(responseCode = "200", description = "Client with id was updated"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
     @PutMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @RequestBody ClientUpdateDTO clientUpdateDTO) {
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id,
+            @Valid @RequestBody ClientUpdateDTO clientUpdateDTO) {
 
         ClientDTO updatedClient = clientService.updateClient(id, clientUpdateDTO);
         return ResponseEntity.ok(updatedClient);
