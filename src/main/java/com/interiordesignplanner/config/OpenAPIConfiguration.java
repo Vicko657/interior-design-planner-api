@@ -1,4 +1,4 @@
-package com.interiordesignplanner;
+package com.interiordesignplanner.config;
 
 import java.util.List;
 
