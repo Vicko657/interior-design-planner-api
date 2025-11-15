@@ -3,8 +3,8 @@ package com.interiordesignplanner.project;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  */
 @Repository
-public interface ProjectRepository extends ListCrudRepository<Project, Long> {
+public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     /**
      * Finds all projects by specific status.

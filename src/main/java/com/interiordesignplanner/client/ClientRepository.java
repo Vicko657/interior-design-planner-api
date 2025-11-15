@@ -1,6 +1,6 @@
 package com.interiordesignplanner.client;
 
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * Provides custom CRUD operations and query methods for accessing client data.
  */
 @Repository
-public interface ClientRepository extends ListCrudRepository<Client, Long> {
+public interface ClientRepository extends JpaRepository<Client, Long> {
 
     /**
      * Finds a client by last name.
