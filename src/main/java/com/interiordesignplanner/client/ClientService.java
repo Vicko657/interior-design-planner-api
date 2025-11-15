@@ -1,6 +1,8 @@
 package com.interiordesignplanner.client;
 
 import java.util.List;
+import com.interiordesignplanner.mapper.ClientMapper;
+import com.interiordesignplanner.project.ProjectRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,11 +26,32 @@ public class ClientService {
     @Autowired
     public ClientRepository clientRepository;
 
+    // Client Mapper
+    @Autowired
+    private final ClientMapper clientMapper;
+
+    // Project Interface
+    @Autowired
+    private final ProjectRepository projectRepository;
+
+    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper,
+            ProjectRepository projectRepository) {
+        this.clientRepository = clientRepository;
+        this.clientMapper = clientMapper;
+        this.projectRepository = projectRepository;
+    }
+
     /**
      * Returns all active clients and their details on the system.
      */
-    public List<Client> getAllClients() {
-        return clientRepository.findAll();
+    public List<ClientDTO> getAllClients() {
+        return clientRepository.findAll().stream()
+                .map(client -> {
+                    ClientDTO clientDTO = clientMapper.toDto(client);
+                    clientDTO.setTotalProjects(projectRepository.countClientsProjects(client.getId()));
+                    return clientDTO;
+                })
+                .toList();
     }
 
     /**
@@ -42,9 +65,12 @@ public class ClientService {
      * @param id client's unique identifier
      * @throws ClientNotFoundException if the client is not found
      */
-    public Client getClient(Long id) {
-        return clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException("clientId", id));
+    public ClientDTO getClientById(Long id) {
+
+        Client client = findClient(id);
+        ClientDTO clientDTO = clientMapper.toDto(client);
+        clientDTO.setTotalProjects(projectRepository.countClientsProjects(id));
+        return clientDTO;
     }
 
     /**
@@ -58,14 +84,13 @@ public class ClientService {
      * @param lastName client's lastname
      * @throws ClientNotFoundException if the client is not found
      */
-    public Client getClientsByLastName(String lastName) {
+    public ClientDTO getClientsByLastName(String lastName) {
 
-        Client clients = clientRepository.findByLastNameIgnoreCase(lastName);
+        Client client = clientRepository.findByLastNameIgnoreCase(lastName)
+                .orElseThrow(() -> new ClientNotFoundException(
+                        "lastName", lastName));
 
-        if (clients == null) {
-            throw new ClientNotFoundException("lastname", lastName);
-        }
-        return clients;
+        return clientMapper.toDto(client);
     }
 
     /**
@@ -76,15 +101,14 @@ public class ClientService {
      * automatically assigned a unique identifier.
      * </p>
      * 
-     * @param client the client object is created
+     * @param ClientCreateDTO the client object is created
      * @return client with a generated unique Id
-     * @throws IllegalArgumentException if the client fields is null
      */
-    public Client createClient(Client client) throws IllegalArgumentException {
-        if (client == null) {
-            throw new IllegalArgumentException("Clients should not have a Id");
-        }
-        return clientRepository.save(client);
+    public ClientDTO createClient(ClientCreateDTO clientCreateDTO) {
+
+        Client client = clientMapper.toEntity(clientCreateDTO);
+        Client savedClient = clientRepository.save(client);
+        return clientMapper.toDto(savedClient);
     }
 
     /**
@@ -95,26 +119,15 @@ public class ClientService {
      * the system and automatically assigned a unique identifier.
      * </p>
      * 
-     * @param updateClient the client object is created
+     * @param ClientUpdateDTO the client object is updated
      * @throws ClientNotFoundException if the client is not found
      * @return the updated client object
      */
-    public Client updateClient(Long id, Client updateClient) {
+    public ClientDTO updateClient(Long id, ClientUpdateDTO clientUpdateDTO) {
 
-        Client existingClientId = getClient(id);
-
-        if (!clientRepository.existsById(id)) {
-            throw new ClientNotFoundException("clientId", id);
-        } else {
-            existingClientId.setFirstName(updateClient.getFirstName());
-            existingClientId.setLastName(updateClient.getLastName());
-            existingClientId.setEmail(updateClient.getEmail());
-            existingClientId.setPhone(updateClient.getPhone());
-            existingClientId.setAddress(updateClient.getAddress());
-            existingClientId.setNotes(updateClient.getNotes());
-        }
-
-        return clientRepository.save(existingClientId);
+        Client existingClient = findClient(id);
+        clientMapper.updateEntity(clientUpdateDTO, existingClient);
+        return clientMapper.toDto(clientRepository.save(existingClient));
     }
 
     /**
@@ -130,10 +143,22 @@ public class ClientService {
      * @return client is removed
      */
     public void deleteClient(Long id) {
-        if (!clientRepository.existsById(id)) {
-            throw new ClientNotFoundException("clientId", id);
-        }
-        clientRepository.deleteById(id);
+        Client client = findClient(id);
+        clientRepository.delete(client);
+    }
+
+    /**
+     * Retrieved the Client's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the client object to be deleted
+     * @throws ClientNotFoundException if the client is not found
+     * @return the client
+     */
+    public Client findClient(Long id) {
+        return clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFoundException("clientId", id));
     }
 
 }

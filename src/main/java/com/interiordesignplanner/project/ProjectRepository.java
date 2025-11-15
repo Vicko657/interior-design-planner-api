@@ -28,6 +28,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findProjectsByStatus(ProjectStatus status);
 
     /**
+     * Gets total number of clients projects.
+     * 
+     * @return the number of projects associated with the client
+     */
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.client.id = :clientId")
+    Long countClientsProjects(Long clientId);
+
+    /**
      * Gets all projects in ascending order of due date.
      * 
      * @return an {@link List} projects associated with the specified status

@@ -1,5 +1,7 @@
 package com.interiordesignplanner.client;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +19,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
      * @param lastName the last name of the client
      * @return the client if found, otherwise empty
      */
-    Client findByLastNameIgnoreCase(String lastName);
+    Optional<Client> findByLastNameIgnoreCase(String lastName);
 
 }

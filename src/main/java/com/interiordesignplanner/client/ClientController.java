@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class ClientController {
     @ApiResponse(responseCode = "200", description = "All clients are found")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Client> getAllClients() {
+    public List<ClientDTO> getAllClients() {
         return clientService.getAllClients();
     }
 
@@ -63,8 +64,9 @@ public class ClientController {
             @ApiResponse(responseCode = "200", description = "Client with id was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<Client> getClientById(@PathVariable Long id) {
-        Client client = clientService.getClient(id);
+    public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
+
+        ClientDTO client = clientService.getClientById(id);
         return ResponseEntity.ok(client);
     }
 
@@ -82,9 +84,9 @@ public class ClientController {
             @ApiResponse(responseCode = "200", description = "Client with lastname was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
     @GetMapping(value = "/lastName/{lastName}", produces = "application/json")
-    public ResponseEntity<Client> getClientsByLastName(@PathVariable("lastName") String lastName) {
+    public ResponseEntity<ClientDTO> getClientsByLastName(@PathVariable("lastName") String lastName) {
 
-        Client client = clientService.getClientsByLastName(lastName);
+        ClientDTO client = clientService.getClientsByLastName(lastName);
         return ResponseEntity.ok(client);
 
     }
@@ -103,9 +105,9 @@ public class ClientController {
             @ApiResponse(responseCode = "201", description = "Client was created"),
             @ApiResponse(responseCode = "404", description = "Client columns have not been filled") })
     @PostMapping(produces = "application/json")
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
+    public ResponseEntity<ClientDTO> createClient(@RequestBody ClientCreateDTO clientCreateDTO) {
 
-        Client savedClient = clientService.createClient(client);
+        ClientDTO savedClient = clientService.createClient(clientCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
 
     }
@@ -125,9 +127,9 @@ public class ClientController {
             @ApiResponse(responseCode = "200", description = "Client with id was updated"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
     @PutMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client updateClient) {
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @RequestBody ClientUpdateDTO clientUpdateDTO) {
 
-        Client updatedClient = clientService.updateClient(id, updateClient);
+        ClientDTO updatedClient = clientService.updateClient(id, clientUpdateDTO);
         return ResponseEntity.ok(updatedClient);
 
     }
