@@ -1,7 +1,6 @@
 package com.interiordesignplanner.client;
 
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,12 +8,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -24,15 +27,12 @@ import org.springframework.web.bind.annotation.PathVariable;
  * API endpoints to complete CRUD operations.
  */
 @RestController
+@RequestMapping("/api/clients")
 public class ClientController {
 
     // Client Service layer
+    @Autowired
     public ClientService clientService;
-
-    // Constructor
-    public ClientController(ClientService clientService) {
-        this.clientService = clientService;
-    }
 
     /**
      * GET: Returns all Clients
@@ -44,7 +44,7 @@ public class ClientController {
     @Operation(summary = "Retrieves all clients", description = "Retrieves all the clients details, including their name, email, phoneNo, address, projects and other details")
     @ApiResponse(responseCode = "200", description = "All clients are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/clients", produces = "application/json")
+    @GetMapping
     public List<Client> getAllClients() {
         return clientService.getAllClients();
     }
@@ -62,15 +62,10 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/clients/{id}", produces = "application/json")
-    public Client getClient(@PathVariable Long id) {
-        try {
-            return clientService.getClient(id);
-        } catch (ClientNotFoundException e) {
-            throw new ClientNotFoundException(e.getMessage());
-        }
-
+    @GetMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Client> getClientById(@PathVariable Long id) {
+        Client client = clientService.getClient(id);
+        return ResponseEntity.ok(client);
     }
 
     /**
@@ -86,14 +81,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with lastname was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/clients/lastName/{lastName}", produces = "application/json")
-    public List<Client> getClientsByLastName(@PathVariable("lastName") String lastName) {
-        try {
-            return clientService.getClientsByLastName(lastName);
-        } catch (ClientNotFoundException e) {
-            throw new ClientNotFoundException(e.getMessage());
-        }
+    @GetMapping(value = "/lastName/{lastName}", produces = "application/json")
+    public ResponseEntity<Client> getClientsByLastName(@PathVariable("lastName") String lastName) {
+
+        Client client = clientService.getClientByLastName(lastName);
+        return ResponseEntity.ok(client);
+
     }
 
     /**
@@ -109,15 +102,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Client was created"),
             @ApiResponse(responseCode = "404", description = "Client columns have not been filled") })
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(value = "/clients", produces = "application/json")
-    public Client createClient(@RequestBody Client client) {
+    @PostMapping(produces = "application/json")
+    public ResponseEntity<Client> createClient(@RequestBody Client client) {
 
-        try {
-            return clientService.createClient(client);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        }
+        Client savedClient = clientService.createClient(client);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
+
     }
 
     /**
@@ -134,15 +124,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was updated"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @PutMapping(value = "/clients/{id}", produces = "application/json")
-    public Client updateClient(@PathVariable Long id, @RequestBody Client updateClient) {
+    @PutMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client updateClient) {
 
-        try {
-            return clientService.updateClient(id, updateClient);
-        } catch (ClientNotFoundException e) {
-            throw new ClientNotFoundException(e.getMessage());
-        }
+        Client updatedClient = clientService.updateClient(id, updateClient);
+        return ResponseEntity.ok(updatedClient);
+
     }
 
     /**
@@ -158,14 +145,11 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Client with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping(value = "/clients/{id}", produces = "application/json")
-    public void deleteClient(@PathVariable Long id) {
-        try {
-            clientService.deleteClient(id);
-        } catch (ClientNotFoundException e) {
-            throw new ClientNotFoundException(e.getMessage());
-        }
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

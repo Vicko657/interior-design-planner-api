@@ -2,7 +2,9 @@ package com.interiordesignplanner.project;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,9 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,17 +27,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * API endpoints to complete CRUD operations.
  */
 @RestController
+@RequestMapping("/api/projects")
 public class ProjectController {
 
     // Project Service layer
+    @Autowired
     public ProjectService projectService;
-
-    // Constructor
-    public ProjectController(ProjectService projectService) {
-
-        this.projectService = projectService;
-
-    }
 
     /**
      * GET: Returns Project with Id
@@ -50,14 +47,11 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Project with id was found"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/projects/{id}", produces = "application/json")
-    public Project getProject(@PathVariable Long id) {
-        try {
-            return projectService.getProject(id);
-        } catch (ProjectNotFoundException e) {
-            throw new ProjectNotFoundException(e.getMessage());
-        }
+    @GetMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Project> getProject(@PathVariable Long id) {
+
+        Project project = projectService.getProject(id);
+        return ResponseEntity.ok(project);
 
     }
 
@@ -71,7 +65,7 @@ public class ProjectController {
     @Operation(summary = "Retrieves all of the client's projects", description = "Retrieves all the project information, including the which clients project it is, name, the budget, project status, start date, deadline and meeting links")
     @ApiResponse(responseCode = "200", description = "All projects are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/projects", produces = "application/json")
+    @GetMapping(value = "", produces = "application/json")
     public List<Project> getAllProjects() {
         return projectService.getAllProjects();
     }
@@ -90,15 +84,13 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Project was created"),
             @ApiResponse(responseCode = "404", description = "Project columns have not been filled") })
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/projects/{clientId}")
-    public Project createProject(@RequestBody Project project, @PathVariable("clientId") Long clientId) {
+    @PostMapping("/{clientId}")
+    public ResponseEntity<Project> createProject(@RequestBody Project project,
+            @PathVariable("clientId") Long clientId) {
 
-        try {
-            return projectService.createProject(project, clientId);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        }
+        Project savedProject = projectService.createProject(project, clientId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
+
     }
 
     /**
@@ -115,15 +107,13 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Project with id was updated"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @PutMapping(value = "/projects/{projectId}", produces = "application/json")
-    public Project updateProject(@PathVariable("projectId") Long projectId, @RequestBody Project updateProject) {
+    @PutMapping(value = "/{projectId}", produces = "application/json")
+    public ResponseEntity<Project> updateProject(@PathVariable("projectId") Long projectId,
+            @RequestBody Project updateProject) {
 
-        try {
-            return projectService.updateProject(projectId, updateProject);
-        } catch (ProjectNotFoundException e) {
-            throw new ProjectNotFoundException(e.getMessage());
-        }
+        Project updatedProject = projectService.updateProject(projectId, updateProject);
+        return ResponseEntity.ok(updatedProject);
+
     }
 
     /**
@@ -140,15 +130,13 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Project with id is reassigned"),
             @ApiResponse(responseCode = "404", description = "Project or Client doesn't exist") })
-    @ResponseStatus(HttpStatus.OK)
-    @PatchMapping(value = "/projects/{projectId}/clients/{clientId}", produces = "application/json")
-    public Project reassignClient(@PathVariable("projectId") Long projectId, @PathVariable("clientId") Long clientId) {
+    @PatchMapping(value = "/{projectId}/clients/{clientId}", produces = "application/json")
+    public ResponseEntity<Project> reassignClient(@PathVariable("projectId") Long projectId,
+            @PathVariable("clientId") Long clientId) {
 
-        try {
-            return projectService.reassignClient(clientId, projectId);
-        } catch (ProjectNotFoundException e) {
-            throw new ProjectNotFoundException(e.getMessage());
-        }
+        Project reassignedProject = projectService.reassignClient(clientId, projectId);
+        return ResponseEntity.ok(reassignedProject);
+
     }
 
     /**
@@ -166,11 +154,8 @@ public class ProjectController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/status/{status}", produces = "application/json")
     public List<Project> getProjectsByStatus(@PathVariable("status") String status) {
-        try {
-            return projectService.getProjectsByStatus(status);
-        } catch (ProjectNotFoundException e) {
-            throw new ProjectNotFoundException(e.getMessage());
-        }
+
+        return projectService.getProjectsByStatus(status);
 
     }
 
@@ -184,7 +169,7 @@ public class ProjectController {
     @Operation(summary = "Project deadlines", description = "Returns the projects in order of deadline")
     @ApiResponse(responseCode = "200", description = "All projects are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/projects/deadlines", produces = "application/json")
+    @GetMapping(value = "/deadlines/all", produces = "application/json")
     public List<Deadline> sortsProjectsByDueDate() {
         return projectService.sortsProjectsByDueDate();
     }
@@ -202,14 +187,12 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Project with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(value = "/projects/{projectId}", produces = "application/json")
-    public void deleteProject(@PathVariable("projectId") Long projectId) {
-        try {
-            projectService.deleteProject(projectId);
-        } catch (ProjectNotFoundException e) {
-            throw new ProjectNotFoundException(e.getMessage());
-        }
+    public ResponseEntity<Void> deleteProject(@PathVariable("projectId") Long projectId) {
+
+        projectService.deleteProject(projectId);
+        return ResponseEntity.noContent().build();
+
     }
 
 }
