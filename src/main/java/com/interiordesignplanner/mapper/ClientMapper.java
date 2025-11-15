@@ -9,7 +9,10 @@ import com.interiordesignplanner.client.ClientCreateDTO;
 import com.interiordesignplanner.client.ClientDTO;
 import com.interiordesignplanner.client.ClientUpdateDTO;
 
+import lombok.AllArgsConstructor;
+
 @Component
+@AllArgsConstructor
 public class ClientMapper {
 
     @Autowired

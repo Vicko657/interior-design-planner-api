@@ -13,6 +13,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Provides shared properties for all entities. Stores the unique
@@ -23,6 +25,8 @@ import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
 public abstract class AbstractEntity {
 
     // The entities auto generated primary key
@@ -39,10 +43,5 @@ public abstract class AbstractEntity {
     @JsonIgnore
     @LastModifiedDate
     private Instant updatedAt;
-
-    // Unique identifier has a getter and cannot be set
-    public Long getId() {
-        return id;
-    }
 
 }
