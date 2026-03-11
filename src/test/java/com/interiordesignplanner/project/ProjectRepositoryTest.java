@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.interiordesignplanner.client.Client;
+
 /**
  * Unit tests for {@link ProjectRepository}.
  *
@@ -33,27 +35,54 @@ public class ProjectRepositoryTest {
 
     // Mock project repository
     @Mock
-    public ProjectRepository pRepository;
+    private ProjectRepository projectRepository;
 
-    public Deadline dtest1;
-    public Deadline dtest2;
-    public Deadline dtest3;
-    public Project ptest3;
+    private Deadline dtest1;
+    private Deadline dtest2;
+    private Deadline dtest3;
+    private Project project2, project3;
+    private Client client2;
 
     @BeforeEach
     public void setUp() {
+
         // Created mock project tests
-        dtest1 = new Deadline(LocalDate.of(2026, 1, 25), LocalDate.of(2025, 07, 20), "Industrial Loft Redesign",
-                ProjectStatus.ACTIVE, 10L, 18L);
-        dtest2 = new Deadline(LocalDate.of(2026, 5, 5), LocalDate.of(2025, 11, 10), "Luxury Master Bedroom",
-                ProjectStatus.PLANNING, 13L, 20L);
-        dtest3 = new Deadline(LocalDate.of(2026, 1, 10), LocalDate.of(2025, 7,
-                20),
-                "Scandinavian Living Room",
-                ProjectStatus.ON_HOLD, 13L, 21L);
-        ptest3 = new Project("Luxury Master Bedroom", ProjectStatus.ACTIVE, 5000,
-                "Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.",
-                "https://meet.google.com/lhv-erf-oub", LocalDate.of(2025, 11, 10), LocalDate.of(2026, 5, 5));
+
+        client2 = new Client();
+        client2.setId(2L);
+        client2.setFirstName("Alex");
+        client2.setLastName("Price");
+        client2.setEmail("aprice@gmail.com");
+        client2.setPhone("07828096962");
+        client2.setAddress("249 The Grove, Reading, R84 J5N");
+        client2.setNotes("Needs child-friendly furniture");
+
+        dtest1 = new Deadline("Industrial Loft Redesign", ProjectStatus.ACTIVE, LocalDate.of(2026, 1, 25));
+        dtest2 = new Deadline("Luxury Master Bedroom", ProjectStatus.PLANNING, LocalDate.of(2026, 5, 5));
+        dtest3 = new Deadline("Scandinavian Living Room", ProjectStatus.ON_HOLD, LocalDate.of(2026, 1, 10));
+
+        project2 = new Project();
+        project2.setId(2L);
+        project2.setClient(client2);
+        project2.setProjectName("Luxury Master Bedroom");
+        project2.setStatus(ProjectStatus.ACTIVE);
+        project2.setBudget(5000);
+        project2.setDescription("Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
+        project2.setMeetingURL("https://meet.google.com/lhv-erf-oub");
+        project2.setStartDate(LocalDate.of(2025, 11, 10));
+        project2.setDueDate(LocalDate.of(2026, 5, 5));
+
+        project3 = new Project();
+        project3.setId(3L);
+        project3.setClient(client2);
+        project3.setProjectName("Industrial Loft Redesign");
+        project3.setStatus(ProjectStatus.ACTIVE);
+        project3.setBudget(20000);
+        project3.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
+        project3.setMeetingURL("https://meet.google.com/hyd-ken-csa");
+        project3.setStartDate(LocalDate.of(2025, 07, 20));
+        project3.setDueDate(LocalDate.of(2026, 01, 25));
+
     }
 
     /**
@@ -65,16 +94,16 @@ public class ProjectRepositoryTest {
 
         // Arrange: Mock repository to return test for status (ACTIVE).
 
-        when(pRepository.findProjectsByStatus(ProjectStatus.ACTIVE)).thenReturn(List.of(ptest3));
+        when(projectRepository.findProjectsByStatus(ProjectStatus.ACTIVE)).thenReturn(List.of(project2, project3));
 
         // Act: Query the repository with status (ACTIVE)
-        List<Project> result = pRepository.findProjectsByStatus(ProjectStatus.ACTIVE);
+        List<Project> result = projectRepository.findProjectsByStatus(ProjectStatus.ACTIVE);
 
-        // Assert: Verify that the result only returns one test and is (ACTIVE)
+        // Assert: Verify that the result only returns two projects and is (ACTIVE)
         assertNotNull(result);
-        assertThat(1).isEqualTo(result.size());
-        assertThat(ptest3).isEqualTo(result.get(0));
-        verify(pRepository).findProjectsByStatus(ProjectStatus.ACTIVE);
+        assertThat(2).isEqualTo(result.size());
+        assertThat(project3).isEqualTo(result.get(1));
+        verify(projectRepository).findProjectsByStatus(ProjectStatus.ACTIVE);
 
     }
 
@@ -86,15 +115,15 @@ public class ProjectRepositoryTest {
     public void testGetProjectByStatus_ReturnsEmptyList() {
 
         // Arrange: Mock repository to test a different status (COMPLETED).
-        when(pRepository.findProjectsByStatus(ProjectStatus.COMPLETED)).thenReturn(Collections.emptyList());
+        when(projectRepository.findProjectsByStatus(ProjectStatus.COMPLETED)).thenReturn(Collections.emptyList());
 
         // Act: Query the repository with status (COMPLETED)
-        List<Project> result = pRepository.findProjectsByStatus(ProjectStatus.COMPLETED);
+        List<Project> result = projectRepository.findProjectsByStatus(ProjectStatus.COMPLETED);
 
         // Assert: Verify that the result doesnt return test
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(pRepository).findProjectsByStatus(ProjectStatus.COMPLETED);
+        verify(projectRepository).findProjectsByStatus(ProjectStatus.COMPLETED);
 
     }
 
@@ -107,24 +136,24 @@ public class ProjectRepositoryTest {
 
         // Arrange: Mock repository to test if all the projects return in order of due
         // date
-        when(pRepository.getAllProjectsOrderByDueDate()).thenReturn(List.of(dtest3, dtest1, dtest2));
+        when(projectRepository.getAllProjectsOrderByDueDate()).thenReturn(List.of(dtest3, dtest1, dtest2));
 
         // Act: Query the repository with the getAllProjectsOrderByDueDate method
-        List<Deadline> result = pRepository.getAllProjectsOrderByDueDate();
+        List<Deadline> result = projectRepository.getAllProjectsOrderByDueDate();
 
         // Assert: Verify that the results return in order
         assertNotNull(result);
         assertThat(result.get(0).dueDate()).isEqualTo(LocalDate.of(2026, 1, 10));
         assertThat(result.get(1).dueDate()).isEqualTo(LocalDate.of(2026, 1, 25));
         assertThat(result.get(2).dueDate()).isEqualTo(LocalDate.of(2026, 5, 5));
-        verify(pRepository).getAllProjectsOrderByDueDate();
+        verify(projectRepository).getAllProjectsOrderByDueDate();
 
     }
 
     // Reset all mock objects
     @AfterEach
     public void tearDown() {
-        reset(pRepository);
+        reset(projectRepository);
     }
 
 }

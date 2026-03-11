@@ -37,15 +37,15 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     /**
      * Gets all projects in ascending order of due date.
+     * Removes the completed project off the list.
      * 
      * @return an {@link List} projects associated with the specified status
      */
-    @Query("SELECT p.dueDate, p.startDate, p.projectName, p.status, p.client.id, p.room.id FROM Project p ORDER BY p.dueDate ASC")
+    @Query("SELECT p.projectName,  p.status, p.dueDate FROM Project p WHERE NOT p.status = 'Completed' ORDER BY p.dueDate ASC")
     List<Deadline> getAllProjectsOrderByDueDate();
 }
 
-// Due Date projection query
-record Deadline(LocalDate dueDate, LocalDate startDate, String projectName, ProjectStatus status, Long clientId,
-        Long roomId) {
+// Deadline projection query
+record Deadline(String projectName, ProjectStatus status, LocalDate dueDate) {
 
 }
