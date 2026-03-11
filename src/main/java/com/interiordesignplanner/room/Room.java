@@ -49,6 +49,7 @@ public class Room extends AbstractEntity {
     private Double length;
     private Double height;
     private Double width;
+
     private String unit;
 
     // Tracks key tasks and items specific to the room

@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectDTO;
+import com.interiordesignplanner.room.Room;
+import com.interiordesignplanner.room.RoomDTO;
 
 @Configuration
 public class ModelMapperConfig {
@@ -28,6 +30,16 @@ public class ModelMapperConfig {
             }
             if (source.getRoom() != null) {
                 destination.setRoom(source.getRoom().getType());
+            }
+            return destination;
+        });
+
+        // Converts Project Id to Project Name when mapped
+        mapper.createTypeMap(Room.class, RoomDTO.class).setPostConverter(convert -> {
+            Room source = convert.getSource();
+            RoomDTO destination = convert.getDestination();
+            if (source.getProject() != null) {
+                destination.setProjectName((source.getProject().getProjectName()));
             }
             return destination;
         });

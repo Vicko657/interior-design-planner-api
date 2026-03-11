@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 /**
  * Rest Controller for managing rooms.
@@ -48,9 +50,9 @@ public class RoomController {
             @ApiResponse(responseCode = "200", description = "Room with id was found"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<Room> getRoom(@PathVariable Long id) {
+    public ResponseEntity<RoomDTO> getRoomById(@PathVariable Long id) {
 
-        Room room = roomService.getRoom(id);
+        RoomDTO room = roomService.getRoomById(id);
         return ResponseEntity.ok(room);
 
     }
@@ -65,8 +67,8 @@ public class RoomController {
     @Operation(summary = "Retrieves all of the rooms", description = "Returns all the room specification, including the client and project it is linked to, roomType, roomSize, checkList of tasks, changes to the room")
     @ApiResponse(responseCode = "200", description = "All rooms are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "", produces = "application/json")
-    public List<Room> getAllRooms() {
+    @GetMapping
+    public List<RoomDTO> getAllRooms() {
         return roomService.getAllRooms();
     }
 
@@ -85,9 +87,10 @@ public class RoomController {
             @ApiResponse(responseCode = "201", description = "Room was created"),
             @ApiResponse(responseCode = "404", description = "Room columns have not been filled") })
     @PostMapping(value = "/{projectId}", produces = "application/json")
-    public ResponseEntity<Room> addRoom(@RequestBody Room room, @PathVariable("projectId") Long projectId) {
+    public ResponseEntity<RoomDTO> addRoom(@Valid @RequestBody RoomCreateDTO roomCreateDTO,
+            @PathVariable("projectId") Long projectId) {
 
-        Room savedRoom = roomService.addRoom(room, projectId);
+        RoomDTO savedRoom = roomService.addRoom(roomCreateDTO, projectId);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedRoom);
 
     }
@@ -107,9 +110,10 @@ public class RoomController {
             @ApiResponse(responseCode = "200", description = "Room with id was updated"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
     @PutMapping(value = "/{roomId}", produces = "application/json")
-    public ResponseEntity<Room> updateRoom(@PathVariable("roomId") Long roomId, @RequestBody Room updateRoom) {
+    public ResponseEntity<RoomDTO> updateRoom(@PathVariable("roomId") Long roomId,
+            @Valid @RequestBody RoomUpdateDTO roomUpdateDTO) {
 
-        Room updatedRoom = roomService.updateRoom(roomId, updateRoom);
+        RoomDTO updatedRoom = roomService.updateRoom(roomId, roomUpdateDTO);
         return ResponseEntity.ok(updatedRoom);
 
     }
@@ -129,10 +133,10 @@ public class RoomController {
             @ApiResponse(responseCode = "200", description = "Room with id is reassigned"),
             @ApiResponse(responseCode = "404", description = "Room or Project doesn't exist") })
     @PatchMapping(value = "/{roomId}/projects/{projectId}", produces = "application/json")
-    public ResponseEntity<Room> reassignProject(@PathVariable("roomId") Long roomId,
+    public ResponseEntity<RoomDTO> reassignProject(@PathVariable("roomId") Long roomId,
             @PathVariable("projectId") Long projectId) {
 
-        Room reassignedRoom = roomService.reassignProject(projectId, roomId);
+        RoomDTO reassignedRoom = roomService.reassignProject(projectId, roomId);
         return ResponseEntity.ok(reassignedRoom);
 
     }
@@ -150,10 +154,10 @@ public class RoomController {
             @ApiResponse(responseCode = "200", description = "Room type is found"),
             @ApiResponse(responseCode = "404", description = "Room type doesn't exist") })
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/type/{type}", produces = "application/json")
-    public List<Room> getType(@PathVariable("type") String type) {
+    @GetMapping(value = "/type", produces = "application/json")
+    public List<RoomDTO> getType(@RequestParam String type) {
 
-        return roomService.getRoomsByType(type);
+        return roomService.getRoomsByType(RoomType.valueOf(type.toUpperCase()));
 
     }
 
@@ -170,10 +174,10 @@ public class RoomController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Room with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
-    @DeleteMapping(value = "/{roomId}", produces = "application/json")
-    public ResponseEntity<Void> deleteProject(@PathVariable("roomId") Long roomId) {
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Void> deleteProject(Long id) {
 
-        roomService.deleteRoom(roomId);
+        roomService.deleteRoom(id);
         return ResponseEntity.noContent().build();
 
     }

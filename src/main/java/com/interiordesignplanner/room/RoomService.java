@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
+import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
 
@@ -33,18 +34,27 @@ public class RoomService {
     @Autowired
     private final RoomRepository roomRepository;
 
+    // Room Mapper
+    @Autowired
+    private final RoomMapper roomMapper;
+
     // Constructor
-    public RoomService(RoomRepository roomRepository, ProjectService projectService) {
+    public RoomService(RoomRepository roomRepository, ProjectService projectService, RoomMapper roomMapper) {
         this.roomRepository = roomRepository;
         this.projectService = projectService;
+        this.roomMapper = roomMapper;
 
     }
 
     /**
      * Returns all rooms created for projects on the system.
      */
-    public List<Room> getAllRooms() {
-        return roomRepository.findAll();
+    public List<RoomDTO> getAllRooms() {
+        return roomRepository.findAll().stream()
+                .map(room -> {
+                    RoomDTO roomDTO = roomMapper.toDto(room);
+                    return roomDTO;
+                }).toList();
     }
 
     /**
@@ -61,22 +71,18 @@ public class RoomService {
      * @returns rooms with same type
      * @throws RoomNotFoundException if the room type is not found
      */
-    public List<Room> getRoomsByType(String type) {
+    public List<RoomDTO> getRoomsByType(RoomType type) {
 
-        RoomType typeValues = null;
-
-        for (RoomType type1 : RoomType.values()) {
-            if (type1.name().equalsIgnoreCase(type.trim())) {
-                typeValues = type1;
-                break;
-            }
+        if (type == null) {
+            throw new RoomNotFoundException("type", type);
         }
 
-        if (typeValues != null) {
-            return roomRepository.findRoomsByType(typeValues);
-        } else {
-            throw new RoomNotFoundException("roomType", type);
-        }
+        return roomRepository.findRoomsByType(
+                type).stream()
+                .map(room -> {
+                    RoomDTO roomDTO = roomMapper.toDto(room);
+                    return roomDTO;
+                }).toList();
 
     }
 
@@ -91,9 +97,12 @@ public class RoomService {
      * @param id project's unique identifier
      * @throws RoomNotFoundException if the room is not found
      */
-    public Room getRoom(Long id) {
-        return roomRepository.findById(id)
-                .orElseThrow(() -> new RoomNotFoundException("roomId", id));
+    public RoomDTO getRoomById(Long id) {
+
+        Room room = findRoom(id);
+        RoomDTO roomDTO = roomMapper.toDto(room);
+
+        return roomDTO;
     }
 
     /**
@@ -111,16 +120,19 @@ public class RoomService {
      * @return room with a generated unique Id
      */
     @Transactional
-    public Room addRoom(Room room, Long projectId) throws IllegalArgumentException {
-        if (room == null && projectId == null) {
+    public RoomDTO addRoom(RoomCreateDTO roomCreateDTO, Long projectId) throws IllegalArgumentException {
+
+        if (roomCreateDTO == null && projectId == null) {
             throw new IllegalArgumentException("Room must not be null");
         }
 
-        Project project = projectService.getProject(projectId);
+        Project project = projectService.findProject(projectId);
+        roomCreateDTO.setProject(project);
+        Room room = roomMapper.toEntity(roomCreateDTO);
         project.setRoom(room);
-        room.setProject(project);
         projectService.saveProjectEntity(project);
-        return room;
+        Room saveRoom = roomRepository.save(room);
+        return roomMapper.toDto(saveRoom);
 
     }
 
@@ -136,20 +148,11 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return updates room
      */
-    public Room updateRoom(Long id, Room room) {
-        Room existingRoomId = getRoom(id);
-        if (!roomRepository.existsById(id)) {
-            throw new RoomNotFoundException("roomId", id);
-        } else {
-            existingRoomId.setType(room.getType());
-            existingRoomId.setHeight(room.getHeight());
-            existingRoomId.setLength(room.getLength());
-            existingRoomId.setWidth(room.getWidth());
-            existingRoomId.setUnit(room.getUnit());
-            existingRoomId.setChecklist(room.getChecklist());
-            existingRoomId.setChanges(room.getChanges());
-        }
-        return roomRepository.save(existingRoomId);
+    public RoomDTO updateRoom(Long id, RoomUpdateDTO roomUpdateDTO) {
+
+        Room existingRoom = findRoom(id);
+        roomMapper.updateEntity(roomUpdateDTO, existingRoom);
+        return roomMapper.toDto(roomRepository.save(existingRoom));
     }
 
     /**
@@ -168,10 +171,8 @@ public class RoomService {
      */
     public void deleteRoom(Long id) {
 
-        if (!roomRepository.existsById(id)) {
-            throw new RoomNotFoundException("roomId", id);
-        }
-        roomRepository.deleteById(id);
+        Room room = findRoom(id);
+        roomRepository.delete(room);
 
     }
 
@@ -191,19 +192,33 @@ public class RoomService {
      * @throws ProjectNotFoundException if the project doesn't exist
      * @return room is reassigned
      */
-    public Room reassignProject(Long projectId, Long roomId) {
+    public RoomDTO reassignProject(Long projectId, Long roomId) {
 
-        Room existingRoomId = getRoom(roomId);
-        Project project = projectService.getProject(projectId);
-        if (existingRoomId == null) {
+        Room existingRoom = findRoom(roomId);
+        Project project = projectService.findProject(projectId);
+
+        if (existingRoom == null || project == null) {
             throw new RoomNotFoundException("roomId", roomId);
-        } else if (projectId == null) {
-            throw new ProjectNotFoundException("projectId", projectId);
         } else {
-            project.setRoom(existingRoomId);
-            existingRoomId.setProject(project);
+            project.setRoom(existingRoom);
+            existingRoom.setProject(project);
         }
-        return roomRepository.save(existingRoomId);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
+     * Retrieved the Room's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the room object to be deleted
+     * @throws RoomNotFoundException if the room is not found
+     * @return the room
+     */
+    public Room findRoom(Long id) {
+        return roomRepository.findById(id)
+                .orElseThrow(() -> new RoomNotFoundException("roomId", id));
     }
 
 }
