@@ -5,6 +5,9 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.interiordesignplanner.project.Project;
+import com.interiordesignplanner.project.ProjectDTO;
+
 @Configuration
 public class ModelMapperConfig {
     @Bean
@@ -15,6 +18,19 @@ public class ModelMapperConfig {
                 .setFieldMatchingEnabled(true)
                 .setSkipNullEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
+
+        // Converts Client Id and Room Id to Full Name and Room Type when mapped
+        mapper.createTypeMap(Project.class, ProjectDTO.class).setPostConverter(convert -> {
+            Project source = convert.getSource();
+            ProjectDTO destination = convert.getDestination();
+            if (source.getClient() != null) {
+                destination.setClientName(source.getClient().getFirstName() + " " + source.getClient().getLastName());
+            }
+            if (source.getRoom() != null) {
+                destination.setRoom(source.getRoom().getType());
+            }
+            return destination;
+        });
         return mapper;
     }
 }

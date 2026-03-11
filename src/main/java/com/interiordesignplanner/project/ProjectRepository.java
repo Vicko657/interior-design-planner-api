@@ -40,7 +40,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * 
      * @return an {@link List} projects associated with the specified status
      */
-    @Query("select p.dueDate, p.startDate, p.projectName, p.status, p.client.id, p.room.id from Project p order by p.dueDate ASC")
+    @Query("SELECT p.dueDate, p.startDate, p.projectName, p.status, p.client.id, p.room.id FROM Project p ORDER BY p.dueDate ASC")
     List<Deadline> getAllProjectsOrderByDueDate();
 }
 

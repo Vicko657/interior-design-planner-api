@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 /**
  * Rest Controller for managing projects
@@ -48,9 +50,9 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "Project with id was found"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<Project> getProject(@PathVariable Long id) {
+    public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
 
-        Project project = projectService.getProject(id);
+        ProjectDTO project = projectService.getProjectById(id);
         return ResponseEntity.ok(project);
 
     }
@@ -65,8 +67,8 @@ public class ProjectController {
     @Operation(summary = "Retrieves all of the client's projects", description = "Retrieves all the project information, including the which clients project it is, name, the budget, project status, start date, deadline and meeting links")
     @ApiResponse(responseCode = "200", description = "All projects are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "", produces = "application/json")
-    public List<Project> getAllProjects() {
+    @GetMapping
+    public List<ProjectDTO> getAllProjects() {
         return projectService.getAllProjects();
     }
 
@@ -85,10 +87,10 @@ public class ProjectController {
             @ApiResponse(responseCode = "201", description = "Project was created"),
             @ApiResponse(responseCode = "404", description = "Project columns have not been filled") })
     @PostMapping("/{clientId}")
-    public ResponseEntity<Project> createProject(@RequestBody Project project,
+    public ResponseEntity<ProjectDTO> createProject(@Valid @RequestBody ProjectCreateDTO projectCreateDTO,
             @PathVariable("clientId") Long clientId) {
 
-        Project savedProject = projectService.createProject(project, clientId);
+        ProjectDTO savedProject = projectService.createProject(projectCreateDTO, clientId);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
 
     }
@@ -108,10 +110,10 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "Project with id was updated"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
     @PutMapping(value = "/{projectId}", produces = "application/json")
-    public ResponseEntity<Project> updateProject(@PathVariable("projectId") Long projectId,
-            @RequestBody Project updateProject) {
+    public ResponseEntity<ProjectDTO> updateProject(@PathVariable("projectId") Long projectId,
+            @Valid @RequestBody ProjectUpdateDTO projectUpdateDTO) {
 
-        Project updatedProject = projectService.updateProject(projectId, updateProject);
+        ProjectDTO updatedProject = projectService.updateProject(projectId, projectUpdateDTO);
         return ResponseEntity.ok(updatedProject);
 
     }
@@ -131,10 +133,10 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "Project with id is reassigned"),
             @ApiResponse(responseCode = "404", description = "Project or Client doesn't exist") })
     @PatchMapping(value = "/{projectId}/clients/{clientId}", produces = "application/json")
-    public ResponseEntity<Project> reassignClient(@PathVariable("projectId") Long projectId,
+    public ResponseEntity<ProjectDTO> reassignClient(@PathVariable("projectId") Long projectId,
             @PathVariable("clientId") Long clientId) {
 
-        Project reassignedProject = projectService.reassignClient(clientId, projectId);
+        ProjectDTO reassignedProject = projectService.reassignClient(clientId, projectId);
         return ResponseEntity.ok(reassignedProject);
 
     }
@@ -152,10 +154,10 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "Project status is found"),
             @ApiResponse(responseCode = "404", description = "Project status doesn't exist") })
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/status/{status}", produces = "application/json")
-    public List<Project> getProjectsByStatus(@PathVariable("status") String status) {
+    @GetMapping(value = "/status", produces = "application/json")
+    public List<ProjectDTO> getProjectsByStatus(@RequestParam String status) {
 
-        return projectService.getProjectsByStatus(status);
+        return projectService.getProjectsByStatus(ProjectStatus.valueOf(status.toUpperCase()));
 
     }
 
@@ -187,10 +189,10 @@ public class ProjectController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Project with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
-    @DeleteMapping(value = "/projects/{projectId}", produces = "application/json")
-    public ResponseEntity<Void> deleteProject(@PathVariable("projectId") Long projectId) {
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
 
-        projectService.deleteProject(projectId);
+        projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
 
     }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
+import com.interiordesignplanner.mapper.ProjectMapper;
 
 import jakarta.transaction.Transactional;
 
@@ -30,24 +31,33 @@ public class ProjectService {
 
     // Project CRUD Interface
     @Autowired
-    private final ProjectRepository projectRepository;
+    private ProjectRepository projectRepository;
 
     // Client Service layer
     @Autowired
     private final ClientService clientService;
 
+    // Project Mapper
+    @Autowired
+    private final ProjectMapper projectMapper;
+
     // Constructor
-    public ProjectService(ProjectRepository projectRepository, ClientService clientService) {
+    public ProjectService(ProjectRepository projectRepository, ClientService clientService,
+            ProjectMapper projectMapper) {
         this.projectRepository = projectRepository;
         this.clientService = clientService;
-
+        this.projectMapper = projectMapper;
     }
 
     /**
      * Returns all projects on the system and their room.
      */
-    public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+    public List<ProjectDTO> getAllProjects() {
+        return projectRepository.findAll().stream()
+                .map(project -> {
+                    ProjectDTO projectDTO = projectMapper.toDto(project);
+                    return projectDTO;
+                }).toList();
     }
 
     /**
@@ -62,9 +72,12 @@ public class ProjectService {
      * @param id project's unique identifier
      * @throws ProjectNotFoundException if the project is not found
      */
-    public Project getProject(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectNotFoundException("projectId", id));
+    public ProjectDTO getProjectById(Long id) {
+
+        Project project = findProject(id);
+        ProjectDTO projectDTO = projectMapper.toDto(project);
+
+        return projectDTO;
     }
 
     /**
@@ -79,23 +92,18 @@ public class ProjectService {
      * @param status project status enum
      * @returns projects with same status
      */
-    public List<Project> getProjectsByStatus(String status) {
+    public List<ProjectDTO> getProjectsByStatus(ProjectStatus status) {
 
-        ProjectStatus statusValues = null;
-
-        for (ProjectStatus status1 : ProjectStatus.values()) {
-            System.out.println("Checking enum: " + status1.name() + " against input: " + status);
-            if (status1.name().equalsIgnoreCase(status.trim())) {
-                statusValues = status1;
-                break;
-            }
-        }
-
-        if (statusValues != null) {
-            return projectRepository.findProjectsByStatus(statusValues);
-        } else {
+        if (status == null) {
             throw new ProjectNotFoundException("projectStatus", status);
         }
+
+        return projectRepository.findProjectsByStatus(
+                status).stream()
+                .map(project -> {
+                    ProjectDTO projectDTO = projectMapper.toDto(project);
+                    return projectDTO;
+                }).toList();
 
     }
 
@@ -127,13 +135,16 @@ public class ProjectService {
      * @param clientId client's unique identifier
      * @throws IllegalArgumentException the project fields are null
      */
-    public Project createProject(Project project, Long clientId) throws IllegalArgumentException {
-        if (project == null && clientId == null) {
+    public ProjectDTO createProject(ProjectCreateDTO projectCreateDTO, Long clientId) throws IllegalArgumentException {
+        if (projectCreateDTO == null && clientId == null) {
             throw new IllegalArgumentException("Project must not be null");
         }
-        Client client = clientService.getClient(clientId);
-        project.setClient(client);
-        return projectRepository.save(project);
+        Client client = clientService.findClient(clientId);
+        projectCreateDTO.setClient(client);
+        Project project = projectMapper.toEntity(projectCreateDTO);
+        Project savedProject = projectRepository.save(project);
+
+        return projectMapper.toDto(savedProject);
     }
 
     /**
@@ -151,28 +162,19 @@ public class ProjectService {
      * @param project project object to be updated
      * @return updated project
      */
-    public Project updateProject(Long id, Project project) {
+    public ProjectDTO updateProject(Long id, ProjectUpdateDTO projectUpdateDTO) {
 
-        Project existingProjectId = getProject(id);
+        Project existingProject = findProject(id);
 
-        if (!projectRepository.existsById(id)) {
-            throw new ProjectNotFoundException("projectId", id);
-        } else {
-            existingProjectId.setProjectName(project.getProjectName());
-            existingProjectId.setBudget(project.getBudget());
-            existingProjectId.setStatus(project.getStatus());
-            existingProjectId.setStartDate(project.getStartDate());
-            existingProjectId.setMeetingURL(project.getMeetingURL());
-            existingProjectId.setDueDate(project.getDueDate());
-            existingProjectId.setClient(project.getClient());
-
-        }
         // Updated Project Status to COMPLETED, sets completedAt field
-        if (existingProjectId.getStatus() == ProjectStatus.COMPLETED
-                || existingProjectId.getCompletedAt() == null) {
-            existingProjectId.setCompletedAt(Instant.now());
+        if (existingProject.getStatus() == ProjectStatus.COMPLETED
+                && existingProject.getCompletedAt() == null) {
+            existingProject.setCompletedAt(Instant.now());
         }
-        return projectRepository.save(existingProjectId);
+
+        projectMapper.updateEntity(projectUpdateDTO, existingProject);
+
+        return projectMapper.toDto(projectRepository.save(existingProject));
     }
 
     /**
@@ -187,10 +189,8 @@ public class ProjectService {
      * @return project is deleted
      */
     public void deleteProject(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ProjectNotFoundException("projectId", id);
-        }
-        projectRepository.deleteById(id);
+        Project project = findProject(id);
+        projectRepository.delete(project);
     }
 
     /**
@@ -206,16 +206,16 @@ public class ProjectService {
      * @param projectId project's unique identifier
      * @return project is reassigned
      */
-    public Project reassignClient(Long clientId, Long projectId) {
-        Project existingProjectId = getProject(projectId);
-        Client client = clientService.getClient(clientId);
+    public ProjectDTO reassignClient(Long clientId, Long projectId) {
+        Project existingProject = findProject(projectId);
+        Client client = clientService.findClient(clientId);
 
-        if (existingProjectId == null || client == null) {
+        if (existingProject == null || client == null) {
             throw new ProjectNotFoundException("projectId", projectId);
         } else {
-            existingProjectId.setClient(client);
+            existingProject.setClient(client);
         }
-        return projectRepository.save(existingProjectId);
+        return projectMapper.toDto(projectRepository.save(existingProject));
     }
 
     /**
@@ -232,6 +232,20 @@ public class ProjectService {
     @Transactional
     public Project saveProjectEntity(Project project) {
         return projectRepository.save(project);
+    }
+
+    /**
+     * Retrieved the Project's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the project object to be deleted
+     * @throws ProjectNotFoundException if the project is not found
+     * @return the project
+     */
+    public Project findProject(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException("projectId", id));
     }
 
 }

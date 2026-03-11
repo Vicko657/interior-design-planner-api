@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,6 +34,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Project extends AbstractEntity {
 
     // Foreign key to Client entity, many to one bidirectional relationship.
@@ -68,26 +70,5 @@ public class Project extends AbstractEntity {
     @OneToOne(mappedBy = "project")
     @JsonManagedReference
     private Room room;
-
-    // Constructor
-    public Project(String projectName, ProjectStatus status, Integer budget, String description, String meetingURL,
-            LocalDate startDate,
-            LocalDate dueDate) {
-
-        this.projectName = projectName;
-        this.status = status;
-        this.budget = budget;
-        this.description = description;
-        this.meetingURL = meetingURL;
-        this.startDate = startDate;
-        this.dueDate = dueDate;
-
-    }
-
-    // Getters
-    @Override
-    public Long getId() {
-        return super.getId();
-    }
 
 }

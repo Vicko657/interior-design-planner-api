@@ -7,6 +7,7 @@ import com.interiordesignplanner.AbstractEntity;
 import com.interiordesignplanner.project.Project;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -51,30 +52,11 @@ public class Room extends AbstractEntity {
     private String unit;
 
     // Tracks key tasks and items specific to the room
+    @ElementCollection
     private List<String> checklist;
 
     // Records design updates to the room over time
+    @ElementCollection
     private List<String> changes;
-
-    // Constructor
-    public Room(RoomType type, Double length, Double height, Double width, String unit,
-            List<String> checklist,
-            List<String> changes) {
-
-        this.type = type;
-        this.length = length;
-        this.height = height;
-        this.width = width;
-        this.unit = unit;
-        this.checklist = checklist;
-        this.changes = changes;
-
-    }
-
-    // Getters
-    @Override
-    public Long getId() {
-        return super.getId();
-    }
 
 }
