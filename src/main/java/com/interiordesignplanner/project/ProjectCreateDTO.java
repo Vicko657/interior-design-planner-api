@@ -20,29 +20,26 @@ import lombok.Setter;
 public class ProjectCreateDTO {
 
     // Project Owner
-    @NotBlank(message = "Project owner is required")
-    @NotNull
     private Client client;
 
     // Project name
     @NotBlank(message = "Project name is required")
-    @NotNull
     private String projectName;
 
     // Project status
-    @NotBlank(message = "Project status is required")
+    @NotNull(message = "Project status is required")
     private ProjectStatus status;
 
     // Project budget
-    @NotBlank(message = "Project's budget is required")
+    @NotNull(message = "Project's budget is required")
     private Integer budget;
 
     // Project start date
-    @NotBlank(message = "Project start date is required")
+    @NotNull(message = "Project start date is required")
     private LocalDate startDate;
 
     // Project due date
-    @NotBlank(message = "Project deadline is required")
+    @NotNull(message = "Project deadline is required")
     private LocalDate dueDate;
 
     // Project description

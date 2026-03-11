@@ -55,9 +55,9 @@ public class GlobalExceptionHandler {
          * Handles entities are not found
          */
         @ResponseStatus(HttpStatus.NOT_FOUND)
-        @ExceptionHandler(ClientNotFoundException.class)
+        @ExceptionHandler(EntityNotFoundException.class)
         public ResponseEntity<ErrorResponse> handleEntityNotFound(
-                        ClientNotFoundException e, HttpServletRequest request) {
+                        EntityNotFoundException e, HttpServletRequest request) {
 
                 ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Not Found",
                                 "Entity Not Found Exception",
