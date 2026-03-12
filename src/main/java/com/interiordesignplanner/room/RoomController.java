@@ -175,7 +175,7 @@ public class RoomController {
             @ApiResponse(responseCode = "204", description = "Room with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
     @DeleteMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<Void> deleteProject(Long id) {
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
 
         roomService.deleteRoom(id);
         return ResponseEntity.noContent().build();
