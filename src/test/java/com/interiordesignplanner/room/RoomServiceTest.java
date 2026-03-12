@@ -1,10 +1,21 @@
 package com.interiordesignplanner.room;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -15,8 +26,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.interiordesignplanner.client.Client;
+import com.interiordesignplanner.exceptions.RoomNotFoundException;
+import com.interiordesignplanner.mapper.RoomMapper;
+import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
+import com.interiordesignplanner.project.ProjectStatus;
 
 /**
  * Unit tests for {@link RoomService}.
@@ -31,69 +50,339 @@ import com.interiordesignplanner.project.ProjectService;
 @ExtendWith(MockitoExtension.class)
 @DisplayName(value = "Room Service Test Suite")
 public class RoomServiceTest {
+
     // Mock room repository
     @Mock
-    public RoomRepository rRepository;
+    private RoomRepository roomRepository;
+
+    // Project mapper
+    @Autowired
+    private RoomMapper roomMapper;
+
     // Mock room service
     @InjectMocks
-    public RoomService rService;
-    // Mock project service
-    @InjectMocks
-    public ProjectService pService;
+    private RoomService roomService;
 
-    public Room room1, room2;
+    // Mock project service
+    @Mock
+    private ProjectService projectService;
+
+    private Client client1;
+
+    private Project project1, project2;
+
+    private Room room1, room2;
+
+    private List<String> checkList1, checkList2;
+    private List<String> changes1, changes2;
 
     @BeforeEach
     // Created mock room tests
     public void setUp() {
-        rService = new RoomService(rRepository, pService);
-        room1 = new Room(RoomType.BEDROOM, 4.5, 6.7, 4.0, "m", "Install lighting fixtures",
-                "Changed wall color from white to light gray");
-        room2 = new Room(RoomType.KITCHEN, 5.8, 8.2, 2.3, "m", "Install cabinets",
-                "Switched flooring material from laminate to ceramic tiles");
 
+        // Added Room Mapper to convert dtos and entities
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT);
+
+        modelMapper.createTypeMap(Room.class, RoomDTO.class).setPostConverter(convert -> {
+            Room source = convert.getSource();
+            RoomDTO destination = convert.getDestination();
+            if (source.getProject() != null) {
+                destination.setProjectName((source.getProject().getProjectName()));
+            }
+            return destination;
+        });
+
+        roomMapper = new RoomMapper(modelMapper);
+        roomService = new RoomService(roomRepository, projectService, roomMapper);
+
+        client1 = new Client();
+        client1.setId(1L);
+
+        project1 = new Project();
+        project1.setId(1L);
+        project1.setClient(client1);
+        project1.setProjectName("Industrial Loft Redesign");
+        project1.setStatus(ProjectStatus.PLANNING);
+        project1.setBudget(20000);
+        project1.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
+        project1.setMeetingURL("https://meet.google.com/hyd-ken-csa");
+        project1.setStartDate(LocalDate.of(2025, 07, 20));
+        project1.setDueDate(LocalDate.of(2026, 01, 25));
+
+        project2 = new Project();
+        project2.setId(2L);
+        project2.setClient(client1);
+        project2.setProjectName("Industrial Hallway Redesign");
+        project2.setStatus(ProjectStatus.ACTIVE);
+        project2.setBudget(1000);
+        project2.setDescription("Remove old tiles and wallpaper");
+        project2.setMeetingURL("https://meet.google.com/hyd-ken-csa");
+        project2.setStartDate(LocalDate.of(2026, 5, 20));
+        project2.setDueDate(LocalDate.of(2026, 9, 25));
+
+        checkList1 = new ArrayList<>();
+        changes1 = new ArrayList<>();
+
+        checkList1.add("Install lighting fixtures");
+        changes1.add("Changed wall color from white to light gray");
+
+        room1 = new Room();
+        room1.setId(1L);
+        room1.setProject(project1);
+        room1.setType(RoomType.BEDROOM);
+        room1.setHeight(4.5);
+        room1.setLength(6.7);
+        room1.setWidth(4.0);
+        room1.setChanges(changes1);
+        room1.setChecklist(checkList1);
+        room1.setUnit("m");
+
+        checkList2 = new ArrayList<>();
+        changes2 = new ArrayList<>();
+
+        checkList2.add("Install lighting fixtures");
+        changes2.add("Changed wall color from white to light gray");
+
+        room2 = new Room();
+        room2.setId(1L);
+        room2.setProject(project2);
+        room2.setType(RoomType.HALLWAY);
+        room2.setHeight(5.8);
+        room2.setLength(6.2);
+        room2.setWidth(2.3);
+        room2.setChanges(changes2);
+        room2.setChecklist(checkList2);
+        room2.setUnit("m");
+
+    }
+
+    /**
+     * Tests for checking if Get all Rooms returns a list of rooms
+     */
+    @Test
+    @DisplayName("GetAllRooms: Returns all of the projects in the database")
+    public void testGetAllRooms_ReturnsAllRooms() {
+        // Arrange: A list created with rooms and mock Repository to test if all
+        // rooms are returned
+
+        when(roomRepository.findAll()).thenReturn(List.of(room1, room2));
+
+        // Act: Query the service layer the if all projects are returnes
+        List<RoomDTO> result = roomService.getAllRooms();
+
+        // Assert: Verifies that the result is not null and projects are retrieved
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+        assertThat(result).extracting(RoomDTO::getType).containsExactly(RoomType.BEDROOM, RoomType.HALLWAY);
+        verify(roomRepository).findAll();
+        verifyNoMoreInteractions(roomRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get all rooms returns a empty list
+     */
+    @Test
+    @DisplayName("GetAllRooms: Returns empty list")
+    public void testGetAllRooms_ReturnsEmptyList() {
+        // Arrange: Empty list is created and Mock Repository to test if it returns a
+        // empty list
+        List<Room> rooms = Collections.emptyList();
+        when(roomRepository.findAll()).thenReturn(rooms);
+
+        // Act: Query the service layer the if a empty list is returned
+        List<RoomDTO> result = roomService.getAllRooms();
+
+        // Assert: Verifies that the result empty
+        assertThat(result).isEqualTo(rooms);
     }
 
     /**
      * Tests for when the room is found with the room id
      */
     @Test
-    @DisplayName("GetRoom: Returns room by ID")
-    public void testGetClient_ReturnsRoom() {
+    @DisplayName("GetRoom: Returns project by ID")
+    public void testGetRoom_ReturnsRoom() {
         // Arrange: Sets the roomId and mocks the repository
         Long roomId = 1L;
-        when(rRepository.findById(roomId)).thenReturn(Optional.of(room2));
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
 
         // Act: Query the service layer to return the room with the id
-        Room result = rService.getRoom(roomId);
+        RoomDTO result = roomService.getRoomById(roomId);
 
-        // Assert: Verifies that the result is not null and a room is returned
-        assertThat(result).isEqualTo(room2);
-        assertThat(result).extracting(Room::getChecklist).isEqualTo("Install cabinets");
+        // Assert: Verifies that the result is not null and a room with the same Id
+        // is
+        // returned
+        assertNotNull(result);
+        assertThat(result.getId()).isEqualTo(roomId);
+        assertThat(result.getProjectName()).isEqualTo("Industrial Loft Redesign");
+        assertThat(result.getChecklist()).isEqualTo(List.of("Install lighting fixtures"));
     }
 
     /**
-     * Tests for deleting a single room
+     * Tests for when the Room is not found, returns a empty set and throws a
+     * RoomNotFoundException
      */
     @Test
-    @DisplayName("DeleteRoom: Deletes room details")
-    public void testDeleteRoom_Deletes() {
+    @DisplayName("GetRoom: Room ID is not found")
+    public void testGetRoom_ReturnsNotFound() {
+        // Arrange: Set the roomId and mock the repository
+        Long roomId = 3L;
+        String errorMessage = "Room is not found with " + "roomId" + ": " + roomId;
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
+
+        // Act: Queries if the exception is thrown
+        RoomNotFoundException exception = assertThrows(RoomNotFoundException.class, () -> {
+            roomService.getRoomById(roomId);
+        });
+
+        // Assert: Verifies exception matches the thrown exception
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
+    }
+
+    /**
+     * Tests for creating a new Room successfully
+     */
+    @Test
+    @DisplayName("CreateRoom: Adds a new Room")
+    public void testCreateRoom_ReturnsCreated() {
+
+        // Arrange: Mock Repository to test if a new Room has been created
+
+        Project project3 = new Project();
+        project3.setId(7L);
+
+        RoomCreateDTO roomDTO = new RoomCreateDTO(project3, RoomType.BATHROOM, 4.5, 6.5, 4.0, "m", changes1,
+                checkList1);
+
+        Room savedRoom = new Room();
+        savedRoom.setId(3L);
+        savedRoom.setProject(project3);
+        savedRoom.setType(RoomType.BATHROOM);
+        savedRoom.setHeight(6.5);
+        savedRoom.setLength(4.5);
+        savedRoom.setWidth(4.0);
+        savedRoom.setUnit("m");
+        savedRoom.setChanges(changes1);
+        savedRoom.setChecklist(checkList1);
+
+        when(projectService.findProject(7L)).thenReturn(project1);
+        when(roomRepository.save(any(Room.class))).thenReturn(savedRoom);
+
+        // Act: Query the service layer the if room is there
+        RoomDTO result = roomService.addRoom(roomDTO, project3.getId());
+
+        // Assert: Verifies that the result is not null and room has been created
+        assertNotNull(result);
+        assertThat(result).extracting(RoomDTO::getWidth).isEqualTo(4.0);
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests for updating a Room
+     */
+    @Test
+    @DisplayName("UpdateRoom: Updates Room details")
+    public void testUpdateRoom_ReturnsUpdated() {
         // Arrange: Sets the roomId and mocks the repository
+        Long roomId = 2L;
+
+        // Updated Room Type
+        RoomUpdateDTO updatedRoom = new RoomUpdateDTO();
+        updatedRoom.setType(RoomType.LIVING_ROOM);
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
+        when(roomRepository.save(room2)).thenReturn(room2);
+
+        // Act: Query the service layer to return the Room with the id and update the
+        // Room's details
+        RoomDTO result = roomService.updateRoom(roomId, updatedRoom);
+
+        // Assert: Verifies that the Room was updated
+        assertNotNull(result);
+        assertEquals(result.getType(), RoomType.LIVING_ROOM);
+        verify(roomRepository).findById(roomId);
+
+    }
+
+    /**
+     * Tests for updating a Room and the Room is not found
+     */
+    @Test
+    @DisplayName("UpdateRoom: Room ID is not found")
+    public void testUpdateRoom_ReturnsNotFound() {
+        // Arrange: Sets the RoomId and mocks the repository
+
+        Long roomId = 2L;
+        String errorMessage = "Room is not found with " + "roomId" + ": " + roomId;
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
+
+        RoomUpdateDTO updateRoom = new RoomUpdateDTO();
+        updateRoom.setHeight(4.0);
+
+        // Act: Queries if the exception is thrown if Room is not found when updating
+        RoomNotFoundException exception = assertThrows(RoomNotFoundException.class, () -> {
+            roomService.updateRoom(roomId, updateRoom);
+        });
+
+        // Assert: Verifies exception matches the thrown exception
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
+        verify(roomRepository).findById(roomId);
+        verify(roomRepository, never()).save(null);
+
+    }
+
+    /**
+     * Tests for deleting a Room
+     */
+    @Test
+    @DisplayName("DeleteRoom: Deletes Room details")
+    public void testDeleteProject_ReturnsDeleted() {
+        // Arrange: Sets the roomId and mocks the repository
+        Long roomId = 2L;
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
+
+        // Act: Query the service layer to return the Room with the id and delete the
+        // Room
+        roomService.deleteRoom(roomId);
+
+        // Assert: Verifies that the Room was deleted and is not found
+        verify(roomRepository).delete(room2);
+        verify(roomRepository).findById(roomId);
+
+    }
+
+    /**
+     * Tests for deleting a Room and the Room is not found
+     */
+    @Test
+    @DisplayName("DeleteRoom: Room ID is not found")
+    public void testDeleteRoom_ReturnsNotFound() {
+        // Arrange: Sets the roomId sand mocks the repository
         Long roomId = 4L;
-        when(rRepository.existsById(roomId)).thenReturn(true);
+        String errorMessage = "Room is not found with " + "roomId" + ": " + roomId;
+        when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
 
-        // Act: Query the service layer to return the room with the id and delete the
-        // room
-        rService.deleteRoom(roomId);
+        // Act: Queries if the exception is thrown if room is not found when deleting
+        RoomNotFoundException exception = assertThrows(RoomNotFoundException.class, () -> {
+            roomService.deleteRoom(roomId);
+        });
 
-        // Assert: Verifies that the room is not found
-        verify(rRepository).existsById(roomId);
+        // Assert: Verifies exception matches the thrown exception
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
+        verify(roomRepository).findById(roomId);
+        verify(roomRepository, never()).delete(any());
 
     }
 
     // Reset all mock objects
     @AfterEach
     public void tearDown() {
-        reset(rRepository);
+        reset(roomRepository);
     }
 }

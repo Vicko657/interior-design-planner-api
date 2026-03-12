@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.interiordesignplanner.project.Project;
 
 /**
  * Unit tests for {@link RoomRepository}.
@@ -31,14 +34,37 @@ public class RoomRepositoryTest {
 
     // Mock room repository
     @Mock
-    public RoomRepository rRepository;
+    private RoomRepository roomRepository;
 
-    public Room rtest1;
+    private Room room;
+
+    private Project project;
+
+    private List<String> checkList;
+    private List<String> changes;
 
     @BeforeEach
     public void setUp() {
-        rtest1 = new Room(RoomType.BEDROOM, 4.5, 6.7, 4.0, "m", "Install lighting fixtures",
-                "Changed wall color from white to light gray");
+
+        checkList = new ArrayList<>();
+        changes = new ArrayList<>();
+
+        checkList.add("Install lighting fixtures");
+        changes.add("Changed wall color from white to light gray");
+
+        project = new Project();
+
+        room = new Room();
+        room.setId(1L);
+        room.setType(RoomType.BEDROOM);
+        room.setHeight(4.0);
+        room.setLength(6.7);
+        room.setWidth(4.5);
+        room.setProject(project);
+        room.setChanges(changes);
+        room.setUnit("m");
+        room.setChecklist(checkList);
+
     }
 
     /**
@@ -49,16 +75,16 @@ public class RoomRepositoryTest {
     public void testGetRoomsByType_ReturnsProjects() {
 
         // Arrange: Mock repository to return test for type (BEDROOM).
-        when(rRepository.findRoomsByType(RoomType.BEDROOM)).thenReturn(List.of(rtest1));
+        when(roomRepository.findRoomsByType(RoomType.BEDROOM)).thenReturn(List.of(room));
 
         // Act: Query the repository with type (BEDROOM)
-        List<Room> result = rRepository.findRoomsByType(RoomType.BEDROOM);
+        List<Room> result = roomRepository.findRoomsByType(RoomType.BEDROOM);
 
         // Assert: Verify that the result does returns one test and is (BEDROOM)
         assertNotNull(result);
         assertThat(1).isEqualTo(result.size());
-        assertThat(rtest1).isEqualTo(result.get(0));
-        verify(rRepository).findRoomsByType(RoomType.BEDROOM);
+        assertThat(room).isEqualTo(result.get(0));
+        verify(roomRepository).findRoomsByType(RoomType.BEDROOM);
 
     }
 
@@ -70,22 +96,22 @@ public class RoomRepositoryTest {
     public void testGetByStatus_ReturnsEmptyList() {
 
         // Arrange: Mock repository to test a different type (DINING_ROOM).
-        when(rRepository.findRoomsByType(RoomType.DINING_ROOM)).thenReturn(Collections.emptyList());
+        when(roomRepository.findRoomsByType(RoomType.DINING_ROOM)).thenReturn(Collections.emptyList());
 
         // Act: Query the repository with type (BEDROOM)
-        List<Room> result = rRepository.findRoomsByType(RoomType.DINING_ROOM);
+        List<Room> result = roomRepository.findRoomsByType(RoomType.DINING_ROOM);
 
         // Assert: Verify that the result doesnt return test
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(rRepository).findRoomsByType(RoomType.DINING_ROOM);
+        verify(roomRepository).findRoomsByType(RoomType.DINING_ROOM);
 
     }
 
     // Reset all mock objects
     @AfterEach
     public void tearDown() {
-        reset(rRepository);
+        reset(roomRepository);
     }
 
 }
