@@ -1,5 +1,6 @@
 package com.interiordesignplanner.room;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -13,6 +14,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,12 +54,13 @@ public class Room extends AbstractEntity {
 
     private String unit;
 
-    // Tracks key tasks and items specific to the room
+    // Checklist of tasks specific to the room
     @ElementCollection
-    private List<String> checklist;
+    @OrderColumn(name = "checklist_key")
+    private List<Task> checklist = new ArrayList<>();
 
     // Records design updates to the room over time
     @ElementCollection
-    private List<String> changes;
+    private List<String> changes = new ArrayList<>();
 
 }

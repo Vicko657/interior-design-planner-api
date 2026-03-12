@@ -182,4 +182,49 @@ public class RoomController {
 
     }
 
+    /**
+     * PATCH: Adds new Task to Room
+     * 
+     * @param roomId the project's unique identifier
+     * @param room   the room's object to be created
+     * @return saved room for project with generated unique identifier
+     * @response 201 if the room was successfully created
+     * @response 404 bad request is input data is invalid
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Adds task", description = "Adds a new task to the room's checklist")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Task was created"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @PatchMapping(value = "{roomId}/task", produces = "application/json")
+    public ResponseEntity<RoomDTO> addTask(@Valid @RequestBody Task task,
+            @PathVariable("roomId") Long roomId) {
+
+        RoomDTO savedTask = roomService.addTask(roomId, task);
+        return ResponseEntity.ok(savedTask);
+
+    }
+
+    /**
+     * DELETE: Removes task for Room
+     * 
+     * @param roomId the room's unique identifier
+     * @param index  the specific task key
+     * @return removed task off the checklist
+     * @response 204 if task was successfully deleted
+     * @response 404 not found is the room doesn't exist
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Deletes task", description = "Deletes specific task for room and its details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Task with id was deleted"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @DeleteMapping(value = "/{id}/task/{index}", produces = "application/json")
+    public ResponseEntity<Void> deleteTask(@PathVariable("roomId") Long roomId, @PathVariable int index) {
+
+        roomService.deleteTask(roomId, index);
+        return ResponseEntity.noContent().build();
+
+    }
+
 }

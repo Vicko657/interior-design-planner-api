@@ -208,6 +208,48 @@ public class RoomService {
     }
 
     /**
+     * Adds Task to checklist for the room
+     * 
+     * 
+     * 
+     * @param task   the task object to be updated
+     * @param roomId retrieves the room object to be updated
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated room
+     */
+    public RoomDTO addTask(Long roomId, Task task) {
+
+        Room existingRoom = findRoom(roomId);
+
+        task.setCompleted(false);
+
+        existingRoom.getChecklist().add(task);
+        roomRepository.save(existingRoom);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
+     * Delete Task to checklist for the room
+     * 
+     * 
+     * 
+     * @param index  using the task's index to delete
+     * @param roomId retrieves the room object to be updated
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated room
+     */
+    public RoomDTO deleteTask(Long roomId, int index) {
+
+        Room existingRoom = findRoom(roomId);
+
+        existingRoom.getChecklist().remove(index);
+        roomRepository.save(existingRoom);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
      * Retrieved the Room's entity
      * 
      * Reduces code repetition

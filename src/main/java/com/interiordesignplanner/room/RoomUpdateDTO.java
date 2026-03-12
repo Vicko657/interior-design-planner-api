@@ -1,7 +1,5 @@
 package com.interiordesignplanner.room;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data
@@ -21,11 +19,5 @@ public class RoomUpdateDTO {
 
     // Unit of dimensions
     private String unit;
-
-    // Room's Checklist
-    private List<String> checklist;
-
-    // Room's design updates over time
-    private List<String> changes;
 
 }

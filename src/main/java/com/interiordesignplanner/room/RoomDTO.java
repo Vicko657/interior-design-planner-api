@@ -2,7 +2,6 @@ package com.interiordesignplanner.room;
 
 import java.util.List;
 
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
@@ -31,12 +30,10 @@ public class RoomDTO {
 
     private String unit;
 
-    // Tracks key tasks and items specific to the room
-    @ElementCollection
-    private List<String> checklist;
+    // Checklist of tasks specific to the room
+    private List<Task> checklist;
 
     // Records design updates to the room over time
-    @ElementCollection
     private List<String> changes;
 
 }
