@@ -206,6 +206,30 @@ public class RoomController {
     }
 
     /**
+     * PATCH: Edit Task from Checklist
+     * 
+     * @param roomId   the project's unique identifier
+     * @param editTask the room's task updated
+     * @param index    the target task to update
+     * @return saved room for project with generated unique identifier
+     * @response 200 if the room was successfully updated
+     * @response 404 bad request is input data is invalid
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Edit task", description = "Edit task to the room's checklist")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Task was added"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @PatchMapping(value = "{roomId}/task/{index}", produces = "application/json")
+    public ResponseEntity<RoomDTO> editTask(@Valid @RequestBody Task editTask,
+            @PathVariable("roomId") Long roomId, @PathVariable("index") int index) {
+
+        RoomDTO updatedTask = roomService.editTask(roomId, editTask, index);
+        return ResponseEntity.ok(updatedTask);
+
+    }
+
+    /**
      * DELETE: Removes task for Room
      * 
      * @param roomId the room's unique identifier
@@ -247,6 +271,30 @@ public class RoomController {
 
         RoomDTO savedTask = roomService.addItem(roomId, item);
         return ResponseEntity.ok(savedTask);
+
+    }
+
+    /**
+     * PATCH: Edit Item from Inventory
+     * 
+     * @param roomId   the project's unique identifier
+     * @param editItem the room's item updated
+     * @param index    the target item to update
+     * @return saved room for project with generated unique identifier
+     * @response 200 if the room was successfully updated
+     * @response 404 bad request is input data is invalid
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Edit item", description = "Edit item from inventory")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Task was added"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @PatchMapping(value = "{roomId}/inventory/{index}", produces = "application/json")
+    public ResponseEntity<RoomDTO> editTask(@Valid @RequestBody Item editItem,
+            @PathVariable("roomId") Long roomId, @PathVariable("index") int index) {
+
+        RoomDTO updatedItem = roomService.editItem(roomId, editItem, index);
+        return ResponseEntity.ok(updatedItem);
 
     }
 

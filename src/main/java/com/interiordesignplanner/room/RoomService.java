@@ -229,6 +229,26 @@ public class RoomService {
     }
 
     /**
+     * Updates task to checklist
+     * 
+     * 
+     * 
+     * @param index      retrieves the item to be updated
+     * @param roomId     retrieves the room object to be updated
+     * @param updateTask the updated task
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated task is added to the checklist
+     */
+    public RoomDTO editTask(Long roomId, Task updateTask, int index) {
+
+        Room existingRoom = findRoom(roomId);
+
+        existingRoom.getChecklist().set(index, updateTask);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
      * Delete Task to checklist for the room
      * 
      * 
@@ -264,6 +284,27 @@ public class RoomService {
         item.setOrdered(false);
 
         existingRoom.getInventory().add(item);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
+     * Updates item to inventory
+     * 
+     * 
+     * 
+     * 
+     * @param index      retrieves the item to be updated
+     * @param roomId     retrieves the room object to be updated
+     * @param updateItem the updated item
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated item is added to the inventory
+     */
+    public RoomDTO editItem(Long roomId, Item updateItem, int index) {
+
+        Room existingRoom = findRoom(roomId);
+
+        existingRoom.getInventory().set(index, updateItem);
 
         return roomMapper.toDto(roomRepository.save(existingRoom));
     }
