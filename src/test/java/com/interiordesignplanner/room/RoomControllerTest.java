@@ -57,8 +57,10 @@ public class RoomControllerTest {
 
     private Task task, task2, task3, task4;
 
+    private Item item, item2;
+
     private List<Task> checkList1, checkList2;
-    private List<String> changes1, changes2;
+    private List<Item> inventory1, inventory2;
 
     @BeforeEach
     void setUp() {
@@ -114,11 +116,33 @@ public class RoomControllerTest {
         task4.setTask("Order swatches for curtain fitting");
         task4.setDate(LocalDate.of(2026, 3, 10));
 
+        item = new Item();
+        item.setImageUrl("/img/product1.png");
+        item.setItemName("Coffee Table");
+        item.setDescription(
+                "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
+        item.setDimensions("H45cm W110cm D55cm");
+        item.setOrdered(true);
+        item.setPrice(119.99);
+        item.setQuantity(1);
+
+        item2 = new Item();
+        item2.setImageUrl("/img/product2.png");
+        item2.setItemName("Modern Minimalist Spanish Marble Copper Wall Sconce LED 1-Light");
+        item2.setDescription(
+                "Designed with a sleek minimalist profile, it combines a resin marble-effect body with subtle copper-toned details for a refined, contemporary look. ");
+        item2.setDimensions("40x6cm");
+        item2.setOrdered(false);
+        item2.setPrice(79.95);
+        item2.setQuantity(5);
+        item2.setLink(
+                "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
+
         checkList1 = new ArrayList<>();
-        changes1 = new ArrayList<>();
+        inventory1 = new ArrayList<>();
 
         checkList2 = new ArrayList<>();
-        changes2 = new ArrayList<>();
+        inventory2 = new ArrayList<>();
 
         roomCreateDTO = new RoomCreateDTO();
         roomCreateDTO.setType(RoomType.KITCHEN);
@@ -135,7 +159,7 @@ public class RoomControllerTest {
         roomDTO1.setHeight(4.0);
         roomDTO1.setLength(4.5);
         roomDTO1.setUnit("m");
-        roomDTO1.setChanges(changes1);
+        roomDTO1.setInventory(inventory1);
         roomDTO1.setChecklist(checkList1);
 
         roomDTO2 = new RoomDTO();
@@ -146,16 +170,16 @@ public class RoomControllerTest {
         roomDTO2.setHeight(3.0);
         roomDTO2.setLength(7.5);
         roomDTO2.setUnit("m");
-        roomDTO2.setChanges(changes2);
+        roomDTO2.setInventory(inventory2);
         roomDTO2.setChecklist(checkList2);
 
         checkList1.add(task);
         checkList1.add(task2);
-        changes1.add("Changed wall color from white to light gray");
+        inventory1.add(item2);
 
         checkList2.add(task3);
         checkList2.add(task4);
-        changes2.add("Changed wall color from white to light gray");
+        inventory2.add(item);
 
     }
 
@@ -337,6 +361,37 @@ public class RoomControllerTest {
     }
 
     @Test
+    @DisplayName("EditTask: Edited Task")
+    void testEditTask() throws Exception {
+        // Given
+
+        task.setTaskName("Kitchen Flooring");
+
+        Long roomId = roomDTO1.getId();
+
+        int index = 0;
+
+        checkList1.set(index, task);
+
+        roomDTO1.setChecklist(checkList1);
+
+        when(roomService.editTask(roomId, task, index)).thenReturn(roomDTO1);
+
+        // When/Then
+        mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", roomId, index)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        task)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.checklist[0].taskName", is("Kitchen Flooring")))
+                .andExpect(jsonPath(
+                        "$.checklist[0].task",
+                        is("Remove floor tiles in the Kitchen")));
+
+        verify(roomService).editTask(roomId, task, index);
+    }
+
+    @Test
     @DisplayName("DeleteTask: Task is deleted")
     void testDeleteTask() throws Exception {
         // Given
@@ -350,6 +405,88 @@ public class RoomControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(roomService).deleteTask(id, index);
+    }
+
+    @Test
+    @DisplayName("AddItem: Created a new Item")
+    void testAddItem() throws Exception {
+        // Given
+
+        Item newItem = new Item();
+        newItem.setImageUrl("/img/product3.png");
+        newItem.setItemName("Barstools");
+        newItem.setDescription(
+                "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
+        newItem.setPrice(152);
+        newItem.setQuantity(2);
+        newItem.setDimensions("W: 47, D: 51, H: 88cm");
+        newItem.setLink(
+                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino?variant=55388585918842&gad_source=1&gad_campaignid=21757503987&gbraid=0AAAAADNOeOVm_QYZzEg2oFlbs2I2wuZmD&gclid=CjwKCAjwjtTNBhB0EiwAuswYhjSsFcuAfKf4TY-c07OEm4GAnFZXefbe5Uv5vgGlEPwFGe4lq3lmUxoCJbIQAvD_BwE");
+        newItem.setOrdered(false);
+
+        Long roomId = roomDTO1.getId();
+
+        inventory1.add(newItem);
+
+        roomDTO1.setInventory(inventory1);
+
+        when(roomService.addItem(roomId, newItem)).thenReturn(roomDTO1);
+
+        // When/Then
+        mockMvc.perform(patch("/api/rooms/{roomId}/inventory", roomId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        newItem)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.inventory[1].itemName", is("Barstools")));
+
+        verify(roomService).addItem(roomId, newItem);
+    }
+
+    @Test
+    @DisplayName("EditItem: Edited Item")
+    void testEditItem() throws Exception {
+        // Given
+
+        item.setLink("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood");
+
+        Long roomId = roomDTO2.getId();
+
+        int index = 0;
+
+        inventory2.set(index, item);
+
+        roomDTO2.setInventory(inventory2);
+
+        when(roomService.editItem(roomId, item, index)).thenReturn(roomDTO2);
+
+        // When/Then
+        mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", roomId, index)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        item)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.inventory[0].itemName", is("Coffee Table")))
+                .andExpect(jsonPath("$.inventory[0].link",
+                        is("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood")));
+
+        verify(roomService).editItem(roomId, item, index);
+    }
+
+    @Test
+    @DisplayName("DeleteItem: Item is deleted")
+    void testDeleteItem() throws Exception {
+        // Given
+        Long id = 2L;
+        int index = 1;
+        doNothing().when(roomService).deleteItem(id, index);
+
+        // When/Then
+        mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", id, index)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        verify(roomService).deleteItem(id, index);
     }
 
 }

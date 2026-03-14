@@ -43,22 +43,34 @@ public class RoomRepositoryTest {
 
     private Task task;
 
+    private Item item;
+
     private List<Task> checkList;
-    private List<String> changes;
+    private List<Item> inventory;
 
     @BeforeEach
     public void setUp() {
 
         checkList = new ArrayList<>();
-        changes = new ArrayList<>();
+        inventory = new ArrayList<>();
 
         task = new Task();
         task.setTaskName("Flooring");
         task.setTask("Remove floor tiles in the Kitchen");
         task.setDate(LocalDate.of(2026, 3, 10));
 
+        item = new Item();
+        item.setImageUrl("/img/product1.png");
+        item.setItemName("Coffee Table");
+        item.setDescription(
+                "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
+        item.setDimensions("H45cm W110cm D55cm");
+        item.setOrdered(true);
+        item.setPrice(119.99);
+        item.setQuantity(1);
+
         checkList.add(task);
-        changes.add("Changed wall color from white to light gray");
+        inventory.add(item);
 
         project = new Project();
 
@@ -69,7 +81,7 @@ public class RoomRepositoryTest {
         room.setLength(6.7);
         room.setWidth(4.5);
         room.setProject(project);
-        room.setChanges(changes);
+        room.setInventory(inventory);
         room.setUnit("m");
         room.setChecklist(checkList);
 

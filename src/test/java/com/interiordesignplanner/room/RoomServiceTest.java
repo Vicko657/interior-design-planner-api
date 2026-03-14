@@ -75,8 +75,10 @@ public class RoomServiceTest {
 
     private Task task, task2, task3, task4;
 
+    private Item item, item2;
+
     private List<Task> checkList1, checkList2;
-    private List<String> changes1, changes2;
+    private List<Item> inventory1, inventory2;
 
     @BeforeEach
     // Created mock room tests
@@ -125,7 +127,7 @@ public class RoomServiceTest {
         project2.setDueDate(LocalDate.of(2026, 9, 25));
 
         checkList1 = new ArrayList<>();
-        changes1 = new ArrayList<>();
+        inventory1 = new ArrayList<>();
 
         task = new Task();
         task.setTaskName("Flooring");
@@ -147,6 +149,28 @@ public class RoomServiceTest {
         task4.setTask("Order swatches for curtain fitting");
         task4.setDate(LocalDate.of(2026, 3, 10));
 
+        item = new Item();
+        item.setImageUrl("/img/product1.png");
+        item.setItemName("Coffee Table");
+        item.setDescription(
+                "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
+        item.setDimensions("H45cm W110cm D55cm");
+        item.setOrdered(true);
+        item.setPrice(119.99);
+        item.setQuantity(1);
+
+        item2 = new Item();
+        item2.setImageUrl("/img/product2.png");
+        item2.setItemName("Modern Minimalist Spanish Marble Copper Wall Sconce LED 1-Light");
+        item2.setDescription(
+                "Designed with a sleek minimalist profile, it combines a resin marble-effect body with subtle copper-toned details for a refined, contemporary look. ");
+        item2.setDimensions("40x6cm");
+        item2.setOrdered(false);
+        item2.setPrice(79.95);
+        item2.setQuantity(5);
+        item2.setLink(
+                "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
+
         room1 = new Room();
         room1.setId(1L);
         room1.setProject(project1);
@@ -154,16 +178,16 @@ public class RoomServiceTest {
         room1.setHeight(4.5);
         room1.setLength(6.7);
         room1.setWidth(4.0);
-        room1.setChanges(changes1);
+        room1.setInventory(inventory1);
         room1.setChecklist(checkList1);
         room1.setUnit("m");
 
         checkList1.add(task);
         checkList1.add(task2);
-        changes1.add("Changed wall color from white to light gray");
+        inventory1.add(item2);
 
         checkList2 = new ArrayList<>();
-        changes2 = new ArrayList<>();
+        inventory2 = new ArrayList<>();
 
         room2 = new Room();
         room2.setId(1L);
@@ -172,13 +196,13 @@ public class RoomServiceTest {
         room2.setHeight(5.8);
         room2.setLength(6.2);
         room2.setWidth(2.3);
-        room2.setChanges(changes2);
+        room2.setInventory(inventory2);
         room2.setChecklist(checkList2);
         room2.setUnit("m");
 
         checkList2.add(task3);
         checkList2.add(task4);
-        changes2.add("Changed wall color from white to light gray");
+        inventory2.add(item);
 
     }
 
@@ -423,10 +447,39 @@ public class RoomServiceTest {
         // Act: Query the service layer the if room exists, adds a new task, saves room
         RoomDTO result = roomService.addTask(roomId, newTask);
 
-        // Assert: Verifies that the result is not null and room has been created
+        // Assert: Verifies that the result is not null and task has been created
         assertNotNull(result);
         assertEquals(room1.getChecklist().size(), 3);
         assertThat(result.getChecklist().get(2).getDate()).isEqualTo(LocalDate.of(2026, 4, 5));
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests editing a task successfully
+     */
+    @Test
+    @DisplayName("EditTask: Edits Task")
+    public void testEditTask_ReturnsUpdatedTask() {
+
+        // Arrange: Mock Repository to test if the room found Task has been updated
+
+        Long roomId = room2.getId();
+
+        int index = 1;
+
+        task4.setDate(LocalDate.of(2026, 3, 10));
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
+        when(roomRepository.save(room2)).thenReturn(room2);
+
+        // Act: Query the service layer the if room exists, adds a new task, saves room
+        RoomDTO result = roomService.editTask(roomId, task4, index);
+
+        // Assert: Verifies that the result is not null and task has been updated
+        assertNotNull(result);
+        assertEquals(room2.getInventory().size(), 1);
+        assertThat(result.getChecklist().get(1).getDate()).isEqualTo(LocalDate.of(2026, 3, 10));
         verify(roomRepository, times(1)).save(any(Room.class));
 
     }
@@ -451,6 +504,96 @@ public class RoomServiceTest {
 
         // Assert: Verifies that the task was deleted, the size of the list is now 1
         assertEquals(room1.getChecklist().size(), 1);
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests adding a new Item successfully
+     */
+    @Test
+    @DisplayName("AddItem: Adds new Item")
+    public void testAddItem_ReturnsUpdatedList() {
+
+        // Arrange: Mock Repository to test if a new Item has been created
+
+        Long roomId = room1.getId();
+
+        Item newItem = new Item();
+        newItem.setImageUrl("/img/product3.png");
+        newItem.setItemName("Barstools");
+        newItem.setDescription(
+                "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
+        newItem.setPrice(152);
+        newItem.setQuantity(2);
+        newItem.setDimensions("W: 47, D: 51, H: 88cm");
+        newItem.setLink(
+                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino?variant=55388585918842&gad_source=1&gad_campaignid=21757503987&gbraid=0AAAAADNOeOVm_QYZzEg2oFlbs2I2wuZmD&gclid=CjwKCAjwjtTNBhB0EiwAuswYhjSsFcuAfKf4TY-c07OEm4GAnFZXefbe5Uv5vgGlEPwFGe4lq3lmUxoCJbIQAvD_BwE");
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(roomRepository.save(room1)).thenReturn(room1);
+
+        // Act: Query the service layer the if room exists, adds a new item, saves room
+        RoomDTO result = roomService.addItem(roomId, newItem);
+
+        // Assert: Verifies that the result is not null and item has been added
+        assertNotNull(result);
+        assertEquals(room1.getInventory().size(), 2);
+        assertThat(result.getInventory().get(1).getPrice()).isEqualTo(152);
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests editing a Item successfully
+     */
+    @Test
+    @DisplayName("EditItem: Edits Item")
+    public void testEditItem_ReturnsUpdatedItem() {
+
+        // Arrange: Mock Repository to test if the room found Item has been updated
+
+        Long roomId = room1.getId();
+
+        int index = 0;
+
+        item.setPrice(239.8);
+        item.setQuantity(2);
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(roomRepository.save(room1)).thenReturn(room1);
+
+        // Act: Query the service layer the if room exists, adds a new item, saves room
+        RoomDTO result = roomService.editItem(roomId, item, index);
+
+        // Assert: Verifies that the result is not null and item has been updated
+        assertNotNull(result);
+        assertEquals(room1.getInventory().size(), 1);
+        assertThat(result.getInventory().get(0).getPrice()).isEqualTo(239.8);
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests for removing a item
+     */
+    @Test
+    @DisplayName("DeleteItem: Remove Item")
+    public void testDeleteItem_ReturnsDeleted() {
+        // Arrange: Sets the roomId and index of the item to be removed and mocks the
+        // repository
+        Long roomId = 1L;
+        int index = 0;
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(roomRepository.save(room1)).thenReturn(room1);
+
+        // Act: Query the service layer to return the Room with the id and delete the
+        // item and save the room
+        roomService.deleteItem(roomId, index);
+
+        // Assert: Verifies that the task was deleted, the size of the list is now 0
+        assertEquals(room1.getInventory().size(), 0);
         verify(roomRepository, times(1)).save(any(Room.class));
 
     }
