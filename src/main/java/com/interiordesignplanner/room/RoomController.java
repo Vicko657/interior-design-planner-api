@@ -227,4 +227,49 @@ public class RoomController {
 
     }
 
+    /**
+     * PATCH: Adds new item to Inventory
+     * 
+     * @param roomId the project's unique identifier
+     * @param item   the new item is added to the inventory list
+     * @return saved room for project with generated unique identifier
+     * @response 200 if the room was successfully created
+     * @response 404 bad request is input data is invalid
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Adds item", description = "Adds a new item to the room's inventory")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Item was added"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @PatchMapping(value = "{roomId}/inventory", produces = "application/json")
+    public ResponseEntity<RoomDTO> addItem(@Valid @RequestBody Item item,
+            @PathVariable("roomId") Long roomId) {
+
+        RoomDTO savedTask = roomService.addItem(roomId, item);
+        return ResponseEntity.ok(savedTask);
+
+    }
+
+    /**
+     * DELETE: Removes item from Inventory
+     * 
+     * @param roomId the room's unique identifier
+     * @param index  the specific task key
+     * @return removed item off the inventory
+     * @response 204 if task was successfully deleted
+     * @response 404 not found is the room doesn't exist
+     */
+    @Tag(name = "rooms", description = "Project's Room specification")
+    @Operation(summary = "Deletes item", description = "Deletes specific item from inventory")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Item with id was deleted"),
+            @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
+    @DeleteMapping(value = "/{roomId}/inventory/{index}", produces = "application/json")
+    public ResponseEntity<Void> deleteItem(@PathVariable("roomId") Long roomId, @PathVariable int index) {
+
+        roomService.deleteItem(roomId, index);
+        return ResponseEntity.noContent().build();
+
+    }
+
 }

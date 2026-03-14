@@ -59,8 +59,8 @@ public class Room extends AbstractEntity {
     @OrderColumn(name = "checklist_key")
     private List<Task> checklist = new ArrayList<>();
 
-    // Records design updates to the room over time
+    // Inventory list for the room
     @ElementCollection
-    private List<String> changes = new ArrayList<>();
+    private List<Item> inventory = new ArrayList<>();
 
 }

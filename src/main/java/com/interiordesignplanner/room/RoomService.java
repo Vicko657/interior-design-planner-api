@@ -248,6 +248,46 @@ public class RoomService {
     }
 
     /**
+     * Adds item to inventory
+     * 
+     * 
+     * 
+     * @param item   the item is added to the shopping list
+     * @param roomId retrieves the room object to be updated
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated room, with a new item on the list
+     */
+    public RoomDTO addItem(Long roomId, Item item) {
+
+        Room existingRoom = findRoom(roomId);
+
+        item.setOrdered(false);
+
+        existingRoom.getInventory().add(item);
+
+        return roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
+     * Deletes Item from inventory
+     * 
+     * 
+     * 
+     * @param index  using the task's index to delete
+     * @param roomId retrieves the room object to be updated
+     * @throws RoomNotFoundException if the room is not found
+     * @return the updated room
+     */
+    public void deleteItem(Long roomId, int index) {
+
+        Room existingRoom = findRoom(roomId);
+
+        existingRoom.getInventory().remove(index);
+
+        roomMapper.toDto(roomRepository.save(existingRoom));
+    }
+
+    /**
      * Retrieved the Room's entity
      * 
      * Reduces code repetition

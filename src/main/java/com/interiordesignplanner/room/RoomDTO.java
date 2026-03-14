@@ -34,7 +34,7 @@ public class RoomDTO {
     // Checklist of tasks specific to the room
     private List<Task> checklist = new ArrayList<>();
 
-    // Records design updates to the room over time
-    private List<String> changes = new ArrayList<>();
+    // Inventory list for the room
+    private List<Item> inventory = new ArrayList<>();
 
 }
