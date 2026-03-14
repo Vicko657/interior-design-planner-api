@@ -1,7 +1,5 @@
 package com.interiordesignplanner.room;
 
-import java.util.List;
-
 import com.interiordesignplanner.project.Project;
 
 import jakarta.validation.constraints.NotNull;
@@ -40,11 +38,5 @@ public class RoomCreateDTO {
     // Unit of dimensions
     @NotNull(message = "Room unit is required")
     private String unit;
-
-    // Room's Checklist
-    private List<String> checklist;
-
-    // Room's design updates over time
-    private List<String> changes;
 
 }

@@ -73,7 +73,9 @@ public class RoomServiceTest {
 
     private Room room1, room2;
 
-    private List<String> checkList1, checkList2;
+    private Task task, task2, task3, task4;
+
+    private List<Task> checkList1, checkList2;
     private List<String> changes1, changes2;
 
     @BeforeEach
@@ -125,8 +127,25 @@ public class RoomServiceTest {
         checkList1 = new ArrayList<>();
         changes1 = new ArrayList<>();
 
-        checkList1.add("Install lighting fixtures");
-        changes1.add("Changed wall color from white to light gray");
+        task = new Task();
+        task.setTaskName("Flooring");
+        task.setTask("Remove floor tiles in the Kitchen");
+        task.setDate(LocalDate.of(2026, 3, 10));
+
+        task2 = new Task();
+        task2.setTaskName("Order Tiles");
+        task2.setTask("Wall tiles from Wickes");
+        task2.setDate(LocalDate.of(2026, 3, 10));
+
+        task3 = new Task();
+        task3.setTaskName("Contractors");
+        task3.setTask("Call contractors before next meeting");
+        task3.setDate(LocalDate.of(2026, 5, 10));
+
+        task4 = new Task();
+        task4.setTaskName("Curtain");
+        task4.setTask("Order swatches for curtain fitting");
+        task4.setDate(LocalDate.of(2026, 3, 10));
 
         room1 = new Room();
         room1.setId(1L);
@@ -139,11 +158,12 @@ public class RoomServiceTest {
         room1.setChecklist(checkList1);
         room1.setUnit("m");
 
+        checkList1.add(task);
+        checkList1.add(task2);
+        changes1.add("Changed wall color from white to light gray");
+
         checkList2 = new ArrayList<>();
         changes2 = new ArrayList<>();
-
-        checkList2.add("Install lighting fixtures");
-        changes2.add("Changed wall color from white to light gray");
 
         room2 = new Room();
         room2.setId(1L);
@@ -155,6 +175,10 @@ public class RoomServiceTest {
         room2.setChanges(changes2);
         room2.setChecklist(checkList2);
         room2.setUnit("m");
+
+        checkList2.add(task3);
+        checkList2.add(task4);
+        changes2.add("Changed wall color from white to light gray");
 
     }
 
@@ -218,7 +242,7 @@ public class RoomServiceTest {
         assertNotNull(result);
         assertThat(result.getId()).isEqualTo(roomId);
         assertThat(result.getProjectName()).isEqualTo("Industrial Loft Redesign");
-        assertThat(result.getChecklist()).isEqualTo(List.of("Install lighting fixtures"));
+        assertThat(result.getChecklist().get(0).getTaskName()).isEqualTo("Flooring");
     }
 
     /**
@@ -255,8 +279,7 @@ public class RoomServiceTest {
         Project project3 = new Project();
         project3.setId(7L);
 
-        RoomCreateDTO roomDTO = new RoomCreateDTO(project3, RoomType.BATHROOM, 4.5, 6.5, 4.0, "m", changes1,
-                checkList1);
+        RoomCreateDTO roomDTO = new RoomCreateDTO(project3, RoomType.BATHROOM, 4.5, 6.5, 4.0, "m");
 
         Room savedRoom = new Room();
         savedRoom.setId(3L);
@@ -266,8 +289,6 @@ public class RoomServiceTest {
         savedRoom.setLength(4.5);
         savedRoom.setWidth(4.0);
         savedRoom.setUnit("m");
-        savedRoom.setChanges(changes1);
-        savedRoom.setChecklist(checkList1);
 
         when(projectService.findProject(7L)).thenReturn(project1);
         when(roomRepository.save(any(Room.class))).thenReturn(savedRoom);
@@ -342,7 +363,7 @@ public class RoomServiceTest {
      */
     @Test
     @DisplayName("DeleteRoom: Deletes Room details")
-    public void testDeleteProject_ReturnsDeleted() {
+    public void testDeleteRoom_ReturnsDeleted() {
         // Arrange: Sets the roomId and mocks the repository
         Long roomId = 2L;
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
@@ -377,6 +398,60 @@ public class RoomServiceTest {
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(roomRepository).findById(roomId);
         verify(roomRepository, never()).delete(any());
+
+    }
+
+    /**
+     * Tests adding a new Task successfully
+     */
+    @Test
+    @DisplayName("AddTask: Adds new Task")
+    public void testAddTask_ReturnsUpdatedList() {
+
+        // Arrange: Mock Repository to test if a new Task has been created
+
+        Long roomId = room1.getId();
+
+        Task newTask = new Task();
+        newTask.setTaskName("Bed");
+        newTask.setTask("Find a double sized bed with a wooden frame");
+        newTask.setDate(LocalDate.of(2026, 4, 5));
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(roomRepository.save(room1)).thenReturn(room1);
+
+        // Act: Query the service layer the if room exists, adds a new task, saves room
+        RoomDTO result = roomService.addTask(roomId, newTask);
+
+        // Assert: Verifies that the result is not null and room has been created
+        assertNotNull(result);
+        assertEquals(room1.getChecklist().size(), 3);
+        assertThat(result.getChecklist().get(2).getDate()).isEqualTo(LocalDate.of(2026, 4, 5));
+        verify(roomRepository, times(1)).save(any(Room.class));
+
+    }
+
+    /**
+     * Tests for removing a task
+     */
+    @Test
+    @DisplayName("DeleteTask: Remove Task")
+    public void testDeleteTask_ReturnsDeleted() {
+        // Arrange: Sets the roomId and index of the task to be removed and mocks the
+        // repository
+        Long roomId = 1L;
+        int index = 1;
+
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(roomRepository.save(room1)).thenReturn(room1);
+
+        // Act: Query the service layer to return the Room with the id and delete the
+        // task and save the room
+        roomService.deleteTask(roomId, index);
+
+        // Assert: Verifies that the task was deleted, the size of the list is now 1
+        assertEquals(room1.getChecklist().size(), 1);
+        verify(roomRepository, times(1)).save(any(Room.class));
 
     }
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,9 @@ public class RoomRepositoryTest {
 
     private Project project;
 
-    private List<String> checkList;
+    private Task task;
+
+    private List<Task> checkList;
     private List<String> changes;
 
     @BeforeEach
@@ -49,7 +52,12 @@ public class RoomRepositoryTest {
         checkList = new ArrayList<>();
         changes = new ArrayList<>();
 
-        checkList.add("Install lighting fixtures");
+        task = new Task();
+        task.setTaskName("Flooring");
+        task.setTask("Remove floor tiles in the Kitchen");
+        task.setDate(LocalDate.of(2026, 3, 10));
+
+        checkList.add(task);
         changes.add("Changed wall color from white to light gray");
 
         project = new Project();

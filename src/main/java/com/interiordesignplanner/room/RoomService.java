@@ -224,7 +224,6 @@ public class RoomService {
         task.setCompleted(false);
 
         existingRoom.getChecklist().add(task);
-        roomRepository.save(existingRoom);
 
         return roomMapper.toDto(roomRepository.save(existingRoom));
     }
@@ -239,14 +238,13 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
-    public RoomDTO deleteTask(Long roomId, int index) {
+    public void deleteTask(Long roomId, int index) {
 
         Room existingRoom = findRoom(roomId);
 
         existingRoom.getChecklist().remove(index);
-        roomRepository.save(existingRoom);
 
-        return roomMapper.toDto(roomRepository.save(existingRoom));
+        roomMapper.toDto(roomRepository.save(existingRoom));
     }
 
     /**

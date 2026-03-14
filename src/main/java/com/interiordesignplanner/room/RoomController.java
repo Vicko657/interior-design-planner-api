@@ -194,7 +194,7 @@ public class RoomController {
     @Tag(name = "rooms", description = "Project's Room specification")
     @Operation(summary = "Adds task", description = "Adds a new task to the room's checklist")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Task was created"),
+            @ApiResponse(responseCode = "200", description = "Task was added"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
     @PatchMapping(value = "{roomId}/task", produces = "application/json")
     public ResponseEntity<RoomDTO> addTask(@Valid @RequestBody Task task,
@@ -219,7 +219,7 @@ public class RoomController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Task with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
-    @DeleteMapping(value = "/{id}/task/{index}", produces = "application/json")
+    @DeleteMapping(value = "/{roomId}/task/{index}", produces = "application/json")
     public ResponseEntity<Void> deleteTask(@PathVariable("roomId") Long roomId, @PathVariable int index) {
 
         roomService.deleteTask(roomId, index);

@@ -1,5 +1,6 @@
 package com.interiordesignplanner.room;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.EnumType;
@@ -31,9 +32,9 @@ public class RoomDTO {
     private String unit;
 
     // Checklist of tasks specific to the room
-    private List<Task> checklist;
+    private List<Task> checklist = new ArrayList<>();
 
     // Records design updates to the room over time
-    private List<String> changes;
+    private List<String> changes = new ArrayList<>();
 
 }

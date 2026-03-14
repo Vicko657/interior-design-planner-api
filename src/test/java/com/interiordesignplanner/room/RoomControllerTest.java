@@ -55,7 +55,9 @@ public class RoomControllerTest {
 
     private Client client1;
 
-    private List<String> checkList1, checkList2;
+    private Task task, task2, task3, task4;
+
+    private List<Task> checkList1, checkList2;
     private List<String> changes1, changes2;
 
     @BeforeEach
@@ -92,18 +94,31 @@ public class RoomControllerTest {
         project2.setStartDate(LocalDate.of(2026, 5, 20));
         project2.setDueDate(LocalDate.of(2026, 9, 25));
 
+        task = new Task();
+        task.setTaskName("Flooring");
+        task.setTask("Remove floor tiles in the Kitchen");
+        task.setDate(LocalDate.of(2026, 3, 10));
+
+        task2 = new Task();
+        task2.setTaskName("Order Tiles");
+        task2.setTask("Wall tiles from Wickes");
+        task2.setDate(LocalDate.of(2026, 3, 10));
+
+        task3 = new Task();
+        task3.setTaskName("Contractors");
+        task3.setTask("Call contractors before next meeting");
+        task3.setDate(LocalDate.of(2026, 5, 10));
+
+        task4 = new Task();
+        task4.setTaskName("Curtain");
+        task4.setTask("Order swatches for curtain fitting");
+        task4.setDate(LocalDate.of(2026, 3, 10));
+
         checkList1 = new ArrayList<>();
         changes1 = new ArrayList<>();
 
-        checkList1.add("Install lighting fixtures");
-        changes1.add("Changed wall color from white to light gray");
-
         checkList2 = new ArrayList<>();
         changes2 = new ArrayList<>();
-
-        checkList2.add("Install lighting fixtures");
-        checkList2.add("Remove floor tiles");
-        changes2.add("Changed wall color from white to light gray");
 
         roomCreateDTO = new RoomCreateDTO();
         roomCreateDTO.setType(RoomType.KITCHEN);
@@ -111,8 +126,6 @@ public class RoomControllerTest {
         roomCreateDTO.setHeight(4.0);
         roomCreateDTO.setLength(4.5);
         roomCreateDTO.setUnit("m");
-        roomCreateDTO.setChanges(changes1);
-        roomCreateDTO.setChecklist(checkList1);
 
         roomDTO1 = new RoomDTO();
         roomDTO1.setId(1L);
@@ -135,6 +148,14 @@ public class RoomControllerTest {
         roomDTO2.setUnit("m");
         roomDTO2.setChanges(changes2);
         roomDTO2.setChecklist(checkList2);
+
+        checkList1.add(task);
+        checkList1.add(task2);
+        changes1.add("Changed wall color from white to light gray");
+
+        checkList2.add(task3);
+        checkList2.add(task4);
+        changes2.add("Changed wall color from white to light gray");
 
     }
 
@@ -170,8 +191,8 @@ public class RoomControllerTest {
                 .andExpect(jsonPath("$.id", is(2)))
                 .andExpect(jsonPath("$.width", is(
                         6.4)))
-                .andExpect(jsonPath("$.checklist",
-                        is(List.of("Install lighting fixtures", "Remove floor tiles"))));
+                .andExpect(jsonPath("$.checklist[0].taskName",
+                        is("Contractors")));
 
         verify(roomService).getRoomById(2L);
     }
@@ -210,7 +231,7 @@ public class RoomControllerTest {
     }
 
     @Test
-    @DisplayName("AddRoom: Missing ProjectName")
+    @DisplayName("AddRoom: Missing width")
     void testAddRoom_ValidationFailure() throws Exception {
         // Given
         roomCreateDTO2 = new RoomCreateDTO();
@@ -219,8 +240,6 @@ public class RoomControllerTest {
         roomCreateDTO2.setHeight(3.0);
         roomCreateDTO2.setLength(7.5);
         roomCreateDTO2.setUnit("m");
-        roomCreateDTO2.setChanges(changes2);
-        roomCreateDTO2.setChecklist(checkList2);
 
         // When/Then
         mockMvc.perform(post("/api/rooms/{projectId}", project2.getId())
@@ -286,6 +305,51 @@ public class RoomControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(roomService).deleteRoom(id);
+    }
+
+    @Test
+    @DisplayName("AddTask: Created a new Task")
+    void testAddTask() throws Exception {
+        // Given
+
+        Task newTask = new Task();
+        newTask.setTaskName("Sofa");
+        newTask.setTask("Find a green or blue sofa");
+        newTask.setDate(LocalDate.of(2026, 3, 15));
+
+        Long roomId = roomDTO1.getId();
+
+        checkList1.add(newTask);
+
+        roomDTO1.setChecklist(checkList1);
+
+        when(roomService.addTask(roomId, newTask)).thenReturn(roomDTO1);
+
+        // When/Then
+        mockMvc.perform(patch("/api/rooms/{roomId}/task", roomId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        newTask)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.checklist[2].taskName", is("Sofa")));
+
+        verify(roomService).addTask(roomId, newTask);
+    }
+
+    @Test
+    @DisplayName("DeleteTask: Task is deleted")
+    void testDeleteTask() throws Exception {
+        // Given
+        Long id = 2L;
+        int index = 1;
+        doNothing().when(roomService).deleteTask(id, index);
+
+        // When/Then
+        mockMvc.perform(delete("/api/rooms/{id}/task/{index}", id, index)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        verify(roomService).deleteTask(id, index);
     }
 
 }
