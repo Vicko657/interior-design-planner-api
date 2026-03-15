@@ -1,26 +1,21 @@
 package com.interiordesignplanner.exceptions;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
+import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
 @AllArgsConstructor
-@Getter
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 // Constructs Error Response
 public class ErrorResponse {
     // HTTP Status Code
-    private final Integer statusCode;
-    // Type of Error
-    private final String error;
-    // Type of Error
-    private final String exception;
-    // List of error Messages
-    private List<String> messages;
+    private final HttpStatus statusCode;
     // Error Message
     private String message;
     // Time of error

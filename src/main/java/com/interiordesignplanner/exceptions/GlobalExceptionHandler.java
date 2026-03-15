@@ -1,18 +1,22 @@
 package com.interiordesignplanner.exceptions;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.client.HttpServerErrorException.InternalServerError;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 /**
  * The Global Exception Handler
@@ -21,32 +25,25 @@ import jakarta.servlet.http.HttpServletRequest;
  * Handles errors and exceptions that may occur in the system
  * </p>
  */
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
         /**
          * MethodArguementNotValidException:
          * 
-         * Handles @Valid @Validated errors
+         * Handles @Valid field errors
          */
-        @ResponseStatus(HttpStatus.BAD_REQUEST)
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        public ResponseEntity<ErrorResponse> handleFieldValidationErrors(
-                        MethodArgumentNotValidException e, HttpServletRequest request) {
+        public ResponseEntity<Map<String, String>> handleFieldValidationErrors(
+                        MethodArgumentNotValidException e) {
 
-                List<String> validationResult = new ArrayList<>();
-
-                e.getBindingResult().getAllErrors().forEach(error -> {
-                        String message = error.getDefaultMessage();
-                        validationResult.add(message);
+                Map<String, String> errors = new HashMap<>();
+                List<FieldError> fieldErrorResult = e.getBindingResult().getFieldErrors();
+                fieldErrorResult.forEach(error -> {
+                        errors.put(error.getField(), error.getDefaultMessage());
                 });
 
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Bad Request",
-                                "Field Error Exception",
-                                validationResult, null,
-                                LocalDateTime.now(), request.getRequestURI());
-
-                return ResponseEntity.badRequest().body(errorResponse);
+                return ResponseEntity.badRequest().body(errors);
         }
 
         /**
@@ -57,15 +54,13 @@ public class GlobalExceptionHandler {
         @ResponseStatus(HttpStatus.NOT_FOUND)
         @ExceptionHandler(EntityNotFoundException.class)
         public ResponseEntity<ErrorResponse> handleEntityNotFound(
-                        EntityNotFoundException e, HttpServletRequest request) {
+                        EntityNotFoundException e, WebRequest webRequest) {
 
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Not Found",
-                                "Entity Not Found Exception",
-                                null, e
-                                                .getMessage(),
-                                LocalDateTime.now(), request.getRequestURI());
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, e
+                                .getMessage(),
+                                LocalDateTime.now(), webRequest.getDescription(false));
 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
 
         /**
@@ -74,16 +69,34 @@ public class GlobalExceptionHandler {
          * Handles internal service errors
          */
         @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-        @ExceptionHandler(InternalServerError.class)
+        @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponse> handleInternalServerError(
-                        InternalServerError e, HttpServletRequest request) {
+                        Exception e, WebRequest webRequest) {
 
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(), "Internal Server Error",
-                                "Internal Server Error Exception", null, e
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                                e
                                                 .getMessage(),
-                                LocalDateTime.now(), request.getRequestURI());
+                                LocalDateTime.now(), webRequest.getDescription(false));
 
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+                return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        /**
+         * ConstraintViolationException:
+         * 
+         * Handles @Validated class-level errors
+         */
+        @ExceptionHandler(ConstraintViolationException.class)
+        public ResponseEntity<Map<String, String>> handleConstraintViolation(
+                        ConstraintViolationException e) {
+
+                Map<String, String> errors = new HashMap<>();
+                Set<ConstraintViolation<?>> constraintViolationSet = e.getConstraintViolations();
+                constraintViolationSet.forEach(constraintViolation -> {
+                        errors.put(constraintViolation.getPropertyPath().toString(), constraintViolation.getMessage());
+                });
+
+                return ResponseEntity.badRequest().body(errors);
         }
 
 }
