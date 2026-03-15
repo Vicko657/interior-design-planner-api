@@ -20,23 +20,23 @@ public class RoomCreateDTO {
     private Project project;
 
     // Project's room
-    @NotNull(message = "Room type is required")
+    @NotNull(message = "Type is required")
     private RoomType type;
 
     // Length of the room
-    @NotNull(message = "Room length is required")
+    @NotNull(message = "Length is required")
     private Double length;
 
     // Height of the room
-    @NotNull(message = "Room height is required")
+    @NotNull(message = "Height is required")
     private Double height;
 
     // Width of the room
-    @NotNull(message = "Room width is required")
+    @NotNull(message = "Width is required")
     private Double width;
 
     // Unit of dimensions
-    @NotNull(message = "Room unit is required")
+    @NotNull(message = "Unit is required")
     private String unit;
 
 }

@@ -1,5 +1,6 @@
 package com.interiordesignplanner.project;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -30,7 +31,7 @@ public class ProjectDTO {
     private ProjectStatus status;
 
     // Estimated cost of project
-    private Integer budget;
+    private BigDecimal budget;
 
     // The start date and due date to help with planning and progress tracking
     private LocalDate startDate;
