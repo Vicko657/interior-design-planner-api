@@ -19,12 +19,12 @@ public class ClientCreateDTO {
 
     // Client's firstname
     @NotBlank(message = "First name is required")
-    @Size(min = 5, max = 15, message = "First name must be between 5 and 15 characters")
+    @Size(min = 3, max = 15, message = "First name must be between 3 and 15 characters")
     private String firstName;
 
     // Client's lastname
     @NotBlank(message = "Last name is required")
-    @Size(min = 5, max = 15, message = "Last name must be between 5 and 15 characters")
+    @Size(min = 3, max = 15, message = "Last name must be between 3 and 15 characters")
     private String lastName;
 
     // Client's email address
@@ -34,7 +34,7 @@ public class ClientCreateDTO {
 
     // Client's phone number
     @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^\\d{10}$", message = "Mobile number must be 10 digits")
+    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 10 digits")
     private String phone;
 
     // Client's address

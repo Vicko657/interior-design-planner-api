@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -158,7 +157,7 @@ public class ClientControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(clientCreateDTO2)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages", hasItem("Client's firstName is required")));
+                .andExpect(jsonPath("$.firstName", is("First name is required")));
 
         verify(clientService, never()).createClient(clientCreateDTO2);
     }
