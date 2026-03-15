@@ -34,7 +34,7 @@ public class ClientCreateDTO {
 
     // Client's phone number
     @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 10 digits")
+    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 11 digits")
     private String phone;
 
     // Client's address

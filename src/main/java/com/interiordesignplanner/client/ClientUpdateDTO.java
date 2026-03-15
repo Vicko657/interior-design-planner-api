@@ -17,11 +17,11 @@ import lombok.Setter;
 public class ClientUpdateDTO {
 
     // Client's firstname
-    @Size(min = 5, max = 15, message = "First name must be between 5 and 15 characters")
+    @Size(min = 3, max = 15, message = "First name must be between 3 and 15 characters")
     private String firstName;
 
     // Client's lastname
-    @Size(min = 5, max = 15, message = "Last name must be between 5 and 15 characters")
+    @Size(min = 3, max = 15, message = "Last name must be between 3 and 15 characters")
     private String lastName;
 
     // Client's email address
@@ -29,7 +29,7 @@ public class ClientUpdateDTO {
     private String email;
 
     // Client's phone number
-    @Pattern(regexp = "^\\d{10}$", message = "Mobile number must be 10 digits")
+    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 11 digits")
     private String phone;
 
     // Client's address
