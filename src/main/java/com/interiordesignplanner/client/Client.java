@@ -3,11 +3,15 @@ package com.interiordesignplanner.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.interiordesignplanner.AbstractEntity;
+import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.project.Project;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -53,5 +57,11 @@ public class Client extends AbstractEntity {
     @OneToMany(mappedBy = "client")
     @JsonManagedReference
     private List<Project> projects = new ArrayList<>();
+
+    // Foreign key to Designer entity, many to one bidirectional relationship.
+    @ManyToOne
+    @JoinColumn(name = "designer_id", referencedColumnName = "id")
+    @JsonBackReference
+    private Designer designer;
 
 }
