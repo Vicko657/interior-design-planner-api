@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class RoomRepositoryTest {
                 "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
         item.setDimensions("H45cm W110cm D55cm");
         item.setOrdered(true);
-        item.setPrice(119.99);
+        item.setPrice(BigDecimal.valueOf(119.99));
         item.setQuantity(1);
 
         checkList.add(task);

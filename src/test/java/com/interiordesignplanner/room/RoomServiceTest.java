@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -109,7 +110,7 @@ public class RoomServiceTest {
         project1.setClient(client1);
         project1.setProjectName("Industrial Loft Redesign");
         project1.setStatus(ProjectStatus.PLANNING);
-        project1.setBudget(20000);
+        project1.setBudget(BigDecimal.valueOf(20000.00));
         project1.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
         project1.setMeetingURL("https://meet.google.com/hyd-ken-csa");
         project1.setStartDate(LocalDate.of(2025, 07, 20));
@@ -120,7 +121,7 @@ public class RoomServiceTest {
         project2.setClient(client1);
         project2.setProjectName("Industrial Hallway Redesign");
         project2.setStatus(ProjectStatus.ACTIVE);
-        project2.setBudget(1000);
+        project2.setBudget(BigDecimal.valueOf(1000.00));
         project2.setDescription("Remove old tiles and wallpaper");
         project2.setMeetingURL("https://meet.google.com/hyd-ken-csa");
         project2.setStartDate(LocalDate.of(2026, 5, 20));
@@ -156,7 +157,7 @@ public class RoomServiceTest {
                 "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
         item.setDimensions("H45cm W110cm D55cm");
         item.setOrdered(true);
-        item.setPrice(119.99);
+        item.setPrice(BigDecimal.valueOf(119.99));
         item.setQuantity(1);
 
         item2 = new Item();
@@ -166,7 +167,7 @@ public class RoomServiceTest {
                 "Designed with a sleek minimalist profile, it combines a resin marble-effect body with subtle copper-toned details for a refined, contemporary look. ");
         item2.setDimensions("40x6cm");
         item2.setOrdered(false);
-        item2.setPrice(79.95);
+        item2.setPrice(BigDecimal.valueOf(79.95));
         item2.setQuantity(5);
         item2.setLink(
                 "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
@@ -524,7 +525,7 @@ public class RoomServiceTest {
         newItem.setItemName("Barstools");
         newItem.setDescription(
                 "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
-        newItem.setPrice(152);
+        newItem.setPrice(BigDecimal.valueOf(152.00));
         newItem.setQuantity(2);
         newItem.setDimensions("W: 47, D: 51, H: 88cm");
         newItem.setLink(
@@ -539,7 +540,7 @@ public class RoomServiceTest {
         // Assert: Verifies that the result is not null and item has been added
         assertNotNull(result);
         assertEquals(room1.getInventory().size(), 2);
-        assertThat(result.getInventory().get(1).getPrice()).isEqualTo(152);
+        assertThat(result.getInventory().get(1).getPrice()).isEqualTo(BigDecimal.valueOf(152.00));
         verify(roomRepository, times(1)).save(any(Room.class));
 
     }
@@ -557,7 +558,7 @@ public class RoomServiceTest {
 
         int index = 0;
 
-        item.setPrice(239.8);
+        item.setPrice(BigDecimal.valueOf(239.80));
         item.setQuantity(2);
 
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
@@ -569,7 +570,7 @@ public class RoomServiceTest {
         // Assert: Verifies that the result is not null and item has been updated
         assertNotNull(result);
         assertEquals(room1.getInventory().size(), 1);
-        assertThat(result.getInventory().get(0).getPrice()).isEqualTo(239.8);
+        assertThat(result.getInventory().get(0).getPrice()).isEqualTo(BigDecimal.valueOf(239.80));
         verify(roomRepository, times(1)).save(any(Room.class));
 
     }
