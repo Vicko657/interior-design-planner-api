@@ -5,8 +5,8 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -26,7 +26,7 @@ public class ProjectUpdateDTO {
     private BigDecimal budget;
 
     // Project start date
-    @FutureOrPresent(message = "Start date must be before due date")
+    @PastOrPresent(message = "Start date must be before due date")
     private LocalDate startDate;
 
     // Project due date

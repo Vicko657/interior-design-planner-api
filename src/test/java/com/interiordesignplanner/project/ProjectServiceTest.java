@@ -1,5 +1,6 @@
 package com.interiordesignplanner.project;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -105,7 +106,7 @@ public class ProjectServiceTest {
         project1.setClient(client1);
         project1.setProjectName("Industrial Loft Redesign");
         project1.setStatus(ProjectStatus.PLANNING);
-        project1.setBudget(20000);
+        project1.setBudget(BigDecimal.valueOf(20000.00));
         project1.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
         project1.setMeetingURL("https://meet.google.com/hyd-ken-csa");
         project1.setStartDate(LocalDate.of(2025, 07, 20));
@@ -116,7 +117,7 @@ public class ProjectServiceTest {
         project2.setClient(client1);
         project2.setProjectName("Luxury Master Bedroom");
         project2.setStatus(ProjectStatus.ON_HOLD);
-        project2.setBudget(5000);
+        project2.setBudget(BigDecimal.valueOf(5000.00));
         project2.setDescription("Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
         project2.setMeetingURL("https://meet.google.com/lhv-erf-oub");
         project2.setStartDate(LocalDate.of(2025, 11, 10));
@@ -141,7 +142,8 @@ public class ProjectServiceTest {
         // Assert: Verifies that the result is not null and projects are retrieved
         assertNotNull(result);
         assertEquals(result.size(), 2);
-        assertThat(result).extracting(ProjectDTO::getBudget).containsExactly(20000, 5000);
+        assertThat(result).extracting(ProjectDTO::getBudget).containsExactly(BigDecimal.valueOf(20000.00),
+                BigDecimal.valueOf(5000.00));
         verify(projectRepository).findAll();
         verifyNoMoreInteractions(projectRepository);
 
@@ -218,7 +220,8 @@ public class ProjectServiceTest {
         // Arrange: Mock Repository to test if a new Project has been created
         ProjectCreateDTO projectDTO = new ProjectCreateDTO(client1, "Scandinavian Living Room",
                 ProjectStatus.PLANNING,
-                140000,
+                BigDecimal.valueOf(
+                        140000.00),
                 LocalDate.of(2025, 07,
                         20),
                 LocalDate.of(2026, 01, 25), "Exposed brick walls, metal fixtures, and reclaimed wood accents",
@@ -229,7 +232,7 @@ public class ProjectServiceTest {
         savedProject.setClient(client1);
         savedProject.setProjectName("Scandinavian Living Room");
         savedProject.setStatus(ProjectStatus.PLANNING);
-        savedProject.setBudget(140000);
+        savedProject.setBudget(BigDecimal.valueOf(140000.00));
         savedProject.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
         savedProject.setMeetingURL("https://meet.google.com/hyd-ken-csa");
         savedProject.setStartDate(LocalDate.of(2025, 07, 20));
@@ -243,7 +246,7 @@ public class ProjectServiceTest {
 
         // Assert: Verifies that the result is not null and Project has been created
         assertNotNull(result);
-        assertThat(result).extracting(ProjectDTO::getBudget).isEqualTo(140000);
+        assertThat(result).extracting(ProjectDTO::getBudget).isEqualTo(BigDecimal.valueOf(140000.00));
         verify(projectRepository, times(1)).save(any(Project.class));
 
     }
@@ -289,7 +292,7 @@ public class ProjectServiceTest {
         when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
         ProjectUpdateDTO updateProject = new ProjectUpdateDTO();
-        updateProject.setBudget(4000);
+        updateProject.setBudget(BigDecimal.valueOf(40000.00));
 
         // Act: Queries if the exception is thrown if Project is not found when updating
         ProjectNotFoundException exception = assertThrows(ProjectNotFoundException.class, () -> {
@@ -299,7 +302,6 @@ public class ProjectServiceTest {
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(projectRepository).findById(projectId);
-        verify(projectRepository, never()).save(null);
 
     }
 

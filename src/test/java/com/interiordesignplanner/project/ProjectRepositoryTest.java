@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +67,7 @@ public class ProjectRepositoryTest {
         project2.setClient(client2);
         project2.setProjectName("Luxury Master Bedroom");
         project2.setStatus(ProjectStatus.ACTIVE);
-        project2.setBudget(5000);
+        project2.setBudget(BigDecimal.valueOf(5000.00));
         project2.setDescription("Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
         project2.setMeetingURL("https://meet.google.com/lhv-erf-oub");
         project2.setStartDate(LocalDate.of(2025, 11, 10));
@@ -77,7 +78,7 @@ public class ProjectRepositoryTest {
         project3.setClient(client2);
         project3.setProjectName("Industrial Loft Redesign");
         project3.setStatus(ProjectStatus.ACTIVE);
-        project3.setBudget(20000);
+        project3.setBudget(BigDecimal.valueOf(20000.00));
         project3.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
         project3.setMeetingURL("https://meet.google.com/hyd-ken-csa");
         project3.setStartDate(LocalDate.of(2025, 07, 20));
