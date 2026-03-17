@@ -1,5 +1,6 @@
 package com.interiordesignplanner.exceptions;
 
+import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
@@ -97,6 +101,24 @@ public class GlobalExceptionHandler {
                 });
 
                 return ResponseEntity.badRequest().body(errors);
+        }
+
+        /**
+         * JwtExceptions:
+         * 
+         * Handles JwtToken errors
+         * 
+         */
+        @ExceptionHandler({ MalformedJwtException.class, UnsupportedJwtException.class, SignatureException.class,
+                        IllegalArgumentException.class })
+        public ResponseEntity<ErrorResponse> handleJwtException(
+                        Exception e, HttpServletRequest request) {
+
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, e
+                                .getMessage(),
+                                LocalDateTime.now(), request.getContextPath());
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
 
 }
