@@ -1,5 +1,6 @@
 package com.interiordesignplanner.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ public class JwtServiceTest {
      * Tests generating a token is successful
      */
     @Test
-    @DisplayName("GeneratedToken: Returns all of the clients in the database")
+    @DisplayName("GeneratedToken: Returns new Token")
     public void testTokenGeneration_ReturnsToken() {
 
         // Arrange: applicationUserDetails
@@ -68,6 +69,26 @@ public class JwtServiceTest {
 
         // Assert: Verifies that the token is not null
         assertNotNull(token);
+
+    }
+
+    /**
+     * Tests extracting a username is successful
+     */
+    @Test
+    @DisplayName("ExtractingUser: Returns Username")
+    public void testUsernameExtraction_ReturnsUsername() {
+
+        // Arrange: Generating new token
+        String token = jwtService.generateJwtToken(applicationUserDetails);
+
+        // Act: Extracting username
+        String username = jwtService.extractUsername(token);
+
+        // Assert: Verifies that the username is not null and is equal the user's
+        // username
+        assertNotNull(username);
+        assertThat(user.getUsername()).isEqualTo(username);
 
     }
 
