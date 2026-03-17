@@ -121,4 +121,21 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
 
+        /**
+         * UserExistsException:
+         * 
+         * Handles users that already exist in the db
+         * 
+         */
+        @ExceptionHandler(UserExistsException.class)
+        public ResponseEntity<ErrorResponse> handleExistingUsersException(
+                        Exception e, WebRequest webRequest) {
+
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT, e
+                                .getMessage(),
+                                LocalDateTime.now(), webRequest.getContextPath());
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
+
 }
