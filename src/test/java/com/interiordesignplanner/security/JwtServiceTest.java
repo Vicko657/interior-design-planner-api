@@ -3,6 +3,7 @@ package com.interiordesignplanner.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -153,6 +154,26 @@ public class JwtServiceTest {
 
         // Assert: Verifies that token is not valid and expired - false
         assertFalse(isTokenValid);
+
+    }
+
+    /**
+     * Tests invalid token
+     */
+    @Test
+    @DisplayName("InValidToken: ReturnsException")
+    public void testInValidToken_ReturnsException() {
+
+        // Arrange: Jwt error message
+        String errorMessage = "Invalid compact JWT string: Compact JWSs must contain exactly 2 period characters, and compact JWEs must contain exactly 4.  Found: 0";
+
+        // Act: Throws exception when token is not valid - MalformedJwtException
+        Exception exception = assertThrows(Exception.class, () -> {
+            jwtService.isTokenValid("invalidtoken", applicationUserDetails);
+        });
+
+        // Assert: Verifies exception matches the thrown exception
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
 
     }
 
