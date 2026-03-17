@@ -1,7 +1,9 @@
 package com.interiordesignplanner.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,9 +35,9 @@ public class JwtServiceTest {
     private JwtService jwtService;
 
     // Mock user details
-    private ApplicationUserDetails applicationUserDetails;
+    private ApplicationUserDetails applicationUserDetails, applicationUserDetails2;
 
-    private User user;
+    private User user, user2;
 
     @BeforeEach
     public void setUp() {
@@ -89,6 +91,49 @@ public class JwtServiceTest {
         // username
         assertNotNull(username);
         assertThat(user.getUsername()).isEqualTo(username);
+
+    }
+
+    /**
+     * Tests if validation of token is true
+     */
+    @Test
+    @DisplayName("IsTokenValid: Returns True")
+    public void testTokenValidation_ReturnsTrue() {
+
+        // Arrange: Generating new token
+        String token = jwtService.generateJwtToken(applicationUserDetails);
+
+        // Act: Validating token
+        Boolean isTokenValid = jwtService.isTokenValid(token, applicationUserDetails);
+
+        // Assert: Verifies that token is valid - true
+        assertTrue(isTokenValid);
+
+    }
+
+    /**
+     * Tests if validation of token is false
+     */
+    @Test
+    @DisplayName("IsTokenValid: Returns False")
+    public void testTokenValidation_ReturnsFalse() {
+
+        // Arrange: Generating new token, mocked new user and new user details
+        String token = jwtService.generateJwtToken(applicationUserDetails);
+
+        // Mocked new user
+        user2 = new User();
+        user2.setUsername("sam620");
+        user2.setRoles(Roles.ADMIN);
+
+        applicationUserDetails2 = new ApplicationUserDetails(user2);
+
+        // Act: Validating token with different user details
+        Boolean isTokenValid = jwtService.isTokenValid(token, applicationUserDetails2);
+
+        // Assert: Verifies that token is not valid - false
+        assertFalse(isTokenValid);
 
     }
 
