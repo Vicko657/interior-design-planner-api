@@ -22,8 +22,6 @@ import com.interiordesignplanner.authentication.User;
  *
  * <p>
  * Verifies user generation of JWT Tokens
- * (such as
- * {@code ClientNotFoundException}) work as expected.
  * <p>
  * The tests use mocked service behavior.
  */
@@ -65,7 +63,7 @@ public class JwtServiceTest {
     @DisplayName("GeneratedToken: Returns new Token")
     public void testTokenGeneration_ReturnsToken() {
 
-        // Arrange: applicationUserDetails
+        // Arrange: Set userDetails
 
         // Act: Generating new jwtToken
         String token = jwtService.generateJwtToken(applicationUserDetails);
