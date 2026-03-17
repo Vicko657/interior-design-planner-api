@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -62,8 +63,14 @@ public class JwtService {
 
     public boolean isTokenValid(String token, ApplicationUserDetails applicationUserDetails) {
 
-        String username = extractUsername(token);
-        return (username.equals(applicationUserDetails.getUsername())) && !isTokenExpired(token);
+        // Returns token if valid and returns false if not
+        try {
+            String username = extractUsername(token);
+            return (username.equals(applicationUserDetails.getUsername())) && !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            return false;
+        }
+
     }
 
     public boolean isTokenExpired(String token) {
