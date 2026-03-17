@@ -137,4 +137,23 @@ public class JwtServiceTest {
 
     }
 
+    /**
+     * Tests expired token
+     */
+    @Test
+    @DisplayName("Expired Token: Returns False")
+    public void testTokenExpiration_ReturnsFalse() {
+
+        // Arrange: Setting the expiration time to 0 and generating token
+        ReflectionTestUtils.setField(jwtService, "expiration", 0L);
+        String token = jwtService.generateJwtToken(applicationUserDetails);
+
+        // Act: Validating token
+        Boolean isTokenValid = jwtService.isTokenValid(token, applicationUserDetails);
+
+        // Assert: Verifies that token is not valid and expired - false
+        assertFalse(isTokenValid);
+
+    }
+
 }
