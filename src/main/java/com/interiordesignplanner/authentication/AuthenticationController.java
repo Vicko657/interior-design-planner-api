@@ -37,6 +37,7 @@ public class AuthenticationController {
     @Tag(name = "users", description = "Information about the users")
     @Operation(summary = "Login User", description = "Allows the user to login and generates a new jwttoken")
     @ApiResponse(responseCode = "200", description = "Successfully logged in")
+    @ApiResponse(responseCode = "401", description = "Invalid username or password")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginDTO userLoginDTO) {
@@ -51,10 +52,12 @@ public class AuthenticationController {
      * 
      * @return Successful registration message
      * @response 201 if new user was created
+     * @response 400 for duplicate users
      */
     @Tag(name = "users", description = "Information about the users")
     @Operation(summary = "Register User", description = "Creates a new User and encodes password")
     @ApiResponse(responseCode = "201", description = "Registration successful")
+    @ApiResponse(responseCode = "400", description = "Registration failed")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
