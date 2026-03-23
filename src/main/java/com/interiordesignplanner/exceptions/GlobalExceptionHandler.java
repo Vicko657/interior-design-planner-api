@@ -9,6 +9,8 @@ import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -65,24 +67,6 @@ public class GlobalExceptionHandler {
                                 LocalDateTime.now(), webRequest.getDescription(false));
 
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-        }
-
-        /**
-         * InternalServerErrorException:
-         * 
-         * Handles internal service errors
-         */
-        @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity<ErrorResponse> handleInternalServerError(
-                        Exception e, WebRequest webRequest) {
-
-                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
-                                e
-                                                .getMessage(),
-                                LocalDateTime.now(), webRequest.getDescription(false));
-
-                return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         /**
@@ -143,6 +127,50 @@ public class GlobalExceptionHandler {
 
                 // Generic for User
                 return ResponseEntity.badRequest().body("Registration failed");
+        }
+
+        /**
+         * BadCredentialsException:
+         * 
+         * Handles when user has bad credentials
+         * (Spring Security)
+         */
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<String> handleBadCredentialsException(
+                        BadCredentialsException e, HttpServletRequest request) {
+
+                return new ResponseEntity<>("Invalid username or password", HttpStatus.UNAUTHORIZED);
+        }
+
+        /**
+         * UsernameNotFoundException:
+         * 
+         * Handles when users username does not exist
+         * (Spring Security)
+         */
+        @ExceptionHandler(UsernameNotFoundException.class)
+        public ResponseEntity<String> handleUsernameNotFoundException(
+                        UsernameNotFoundException e, HttpServletRequest request) {
+
+                return new ResponseEntity<>("Invalid username or password", HttpStatus.UNAUTHORIZED);
+        }
+
+        /**
+         * InternalServerErrorException:
+         * 
+         * Handles internal service errors
+         */
+        @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleInternalServerError(
+                        Exception e, WebRequest webRequest) {
+
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                                e
+                                                .getMessage(),
+                                LocalDateTime.now(), webRequest.getDescription(false));
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 }
