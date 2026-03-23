@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,6 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.authentication.password.CompromisedPasswordDecision;
+import org.springframework.security.authentication.password.CompromisedPasswordException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.interiordesignplanner.designer.DesignerRepository;
@@ -69,6 +73,13 @@ public class AuthenticationServiceTest {
     @Mock
     private ApplicationUserDetailsService applicationUserDetailsService;
 
+    // Mock application user details service
+    @Mock
+    private CompromisedPasswordChecker compromisedPasswordChecker;
+
+    @Mock
+    private CompromisedPasswordDecision decision;
+
     // Mock authentication service
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -88,7 +99,7 @@ public class AuthenticationServiceTest {
         this.userMapper = new UserMapper(modelMapper);
 
         authenticationService = new AuthenticationService(authenticationManager, jwtService, userRepository, userMapper,
-                designerRepository, applicationUserDetailsService, passwordEncoder);
+                designerRepository, applicationUserDetailsService, passwordEncoder, compromisedPasswordChecker);
 
         userCreateDTO = new UserCreateDTO();
         userCreateDTO.setFirstName("Sam");
@@ -118,7 +129,13 @@ public class AuthenticationServiceTest {
     @DisplayName("RegisterUser: Registers new User")
     public void testRegisterUser_ReturnsCreated() {
 
-        // Arrange: Mock UserCreateDTO, User and password hashing
+        // Arrange: Mock UserCreateDTO, CompromisedPasswordChecker, User and password
+        // hashing
+
+        // Safe password
+        decision = mock(CompromisedPasswordDecision.class);
+        when(decision.isCompromised()).thenReturn(false);
+        when(compromisedPasswordChecker.check(any())).thenReturn(decision);
 
         when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
 
@@ -127,6 +144,32 @@ public class AuthenticationServiceTest {
 
         // Assert: Verifies that user has been created
         verify(userRepository, times(1)).save(any(User.class));
+
+    }
+
+    /**
+     * Tests if password is compromised
+     */
+    @Test
+    @DisplayName("RegisterUser: User password is compromised")
+    public void testRegisterUser_WithCompromisedPassword() {
+
+        // Arrange: Mock error message and UserCreateDTO (password is compromised)
+        String errorMessage = "This password cannot be used and is compromised.";
+
+        decision = mock(CompromisedPasswordDecision.class);
+
+        when(decision.isCompromised()).thenReturn(true);
+        when(compromisedPasswordChecker.check(any())).thenReturn(decision);
+
+        /// Act: Queries if the exception is thrown if the password the user entered is
+        /// compromised
+        CompromisedPasswordException exception = assertThrows(CompromisedPasswordException.class, () -> {
+            authenticationService.registerDesigner(userCreateDTO);
+        });
+
+        // Assert: Verifies exception matches the thrown exception
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
 
     }
 
