@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -81,20 +80,14 @@ public class AuthenticationService {
     public String login(UserLoginDTO userLoginDTO) {
 
         // Checks users login details are correct
-        Authentication auth = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userLoginDTO.getUsername(), userLoginDTO.getPassword()));
 
         ApplicationUserDetails applicationUserDetails = applicationUserDetailsService
                 .loadUserByUsername(userLoginDTO.getUsername());
 
-        // If the user is authenticated - a new token will be generated
-
-        if (auth.isAuthenticated()) {
-            return jwtService.generateJwtToken(applicationUserDetails);
-
-        } else {
-            throw new BadCredentialsException("Invalid username or password");
-        }
+        // A new token will be generated
+        return jwtService.generateJwtToken(applicationUserDetails);
 
     }
 
