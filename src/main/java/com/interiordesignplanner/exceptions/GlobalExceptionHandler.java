@@ -125,17 +125,24 @@ public class GlobalExceptionHandler {
          * UserExistsException:
          * 
          * Handles users that already exist in the db
+         * based on their mobile number or email address.
          * 
          */
         @ExceptionHandler(UserExistsException.class)
-        public ResponseEntity<ErrorResponse> handleExistingUsersException(
-                        Exception e, WebRequest webRequest) {
+        public ResponseEntity<?> handleExistingUsersException(
+                        Exception e, HttpServletRequest request) {
 
                 ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT, e
                                 .getMessage(),
-                                LocalDateTime.now(), webRequest.getContextPath());
+                                LocalDateTime.now(), request.getContextPath());
 
-                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+                // For Admin (Provides more detail)
+                if (request.getRequestURI().startsWith("/api/admin/")) {
+                        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+                }
+
+                // Generic for User
+                return ResponseEntity.badRequest().body("Registration failed");
         }
 
 }
