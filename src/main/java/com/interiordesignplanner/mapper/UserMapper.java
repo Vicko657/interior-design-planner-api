@@ -8,7 +8,10 @@ import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.authentication.UserCreateDTO;
 import com.interiordesignplanner.authentication.UserDTO;
 
+import lombok.AllArgsConstructor;
+
 @Component
+@AllArgsConstructor
 public class UserMapper {
 
     @Autowired
