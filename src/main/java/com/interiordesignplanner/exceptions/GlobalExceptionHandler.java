@@ -10,6 +10,7 @@ import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.password.CompromisedPasswordException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -153,6 +154,19 @@ public class GlobalExceptionHandler {
                         UsernameNotFoundException e, HttpServletRequest request) {
 
                 return new ResponseEntity<>("Invalid username or password", HttpStatus.UNAUTHORIZED);
+        }
+
+        /**
+         * CompromisedPasswordException:
+         * 
+         * Handles when users password is compromised
+         * (Spring Security)
+         */
+        @ExceptionHandler(CompromisedPasswordException.class)
+        public ResponseEntity<String> handleCompromisedPasswordException(
+                        CompromisedPasswordException e, HttpServletRequest request) {
+
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
         /**
