@@ -5,6 +5,9 @@ import java.util.Optional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.authentication.password.CompromisedPasswordDecision;
+import org.springframework.security.authentication.password.CompromisedPasswordException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,9 +49,12 @@ public class AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final CompromisedPasswordChecker compromisedPasswordChecker;
+
     public AuthenticationService(AuthenticationManager authenticationManager, JwtService jwtService,
             UserRepository userRepository, UserMapper userMapper, DesignerRepository designerRepository,
-            ApplicationUserDetailsService applicationUserDetailsService, PasswordEncoder passwordEncoder) {
+            ApplicationUserDetailsService applicationUserDetailsService, PasswordEncoder passwordEncoder,
+            CompromisedPasswordChecker compromisedPasswordChecker) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -56,6 +62,7 @@ public class AuthenticationService {
         this.designerRepository = designerRepository;
         this.applicationUserDetailsService = applicationUserDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.compromisedPasswordChecker = compromisedPasswordChecker;
     }
 
     /**
@@ -127,6 +134,15 @@ public class AuthenticationService {
 
         }
 
+        // Checking if the password is compromised
+        String password = userCreateDTO.getPassword();
+
+        CompromisedPasswordDecision decision = compromisedPasswordChecker.check(password);
+
+        if (decision.isCompromised()) {
+            throw new CompromisedPasswordException("This password cannot be used and is compromised.");
+        }
+
         // Established User's role (Designer)
         userCreateDTO.setRoles(Roles.DESIGNER);
 
@@ -134,7 +150,7 @@ public class AuthenticationService {
         User user = userMapper.toEntity(userCreateDTO);
 
         // Uses password encoder bean - hashes the password
-        user.setPassword(passwordEncoder.encode(userCreateDTO.getPassword()));
+        user.setPassword(passwordEncoder.encode(password));
 
         User savedUser = userRepository.save(user);
 
