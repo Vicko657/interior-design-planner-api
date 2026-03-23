@@ -2,7 +2,6 @@ package com.interiordesignplanner.authentication;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,18 +44,18 @@ public class AuthenticationService {
 
     private final ApplicationUserDetailsService applicationUserDetailsService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthenticationService(AuthenticationManager authenticationManager, JwtService jwtService,
             UserRepository userRepository, UserMapper userMapper, DesignerRepository designerRepository,
-            ApplicationUserDetailsService applicationUserDetailsService) {
+            ApplicationUserDetailsService applicationUserDetailsService, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.designerRepository = designerRepository;
         this.applicationUserDetailsService = applicationUserDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -143,8 +142,6 @@ public class AuthenticationService {
         Designer designer = new Designer();
         designer.setUser(savedUser);
         designerRepository.save(designer);
-
-        userMapper.toDto(savedUser);
 
     }
 
