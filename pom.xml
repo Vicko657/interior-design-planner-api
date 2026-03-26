@@ -204,6 +204,14 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+
+		 <!-- RSQL for dynamic queries -->
+
+        <dependency>
+            <groupId>io.github.perplexhub</groupId>
+            <artifactId>rsql-jpa-spring-boot-starter</artifactId>
+            <version>6.0.33</version>
+        </dependency>
 		
 	</dependencies>
 
