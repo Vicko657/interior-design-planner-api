@@ -1,5 +1,6 @@
 package com.interiordesignplanner.exceptions;
 
+import java.nio.file.AccessDeniedException;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -167,6 +168,19 @@ public class GlobalExceptionHandler {
                         CompromisedPasswordException e, HttpServletRequest request) {
 
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * AccessDeniedException:
+         * 
+         * Handles when users don't have access
+         * (Spring Security)
+         */
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<String> handleAccessDeniedException(
+                        AccessDeniedException e, HttpServletRequest request) {
+
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
 
         /**
