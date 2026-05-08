@@ -1,5 +1,7 @@
 package com.interiordesignplanner.client;
 
+import com.interiordesignplanner.designer.Designer;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -44,5 +46,7 @@ public class ClientCreateDTO {
     // Client's notes
     @Size(min = 5, max = 200, message = "Notes must be between 5 and 200 characters")
     private String notes;
+
+    private Designer designer;
 
 }

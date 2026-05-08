@@ -7,16 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientDTO {
+public class ClientSummaryDTO {
 
     // Client's id
     private Long id;
 
-    // Client's firstname
-    private String firstName;
-
-    // Client's lastname
-    private String lastName;
+    // Client's fullname
+    private String fullName;
 
     // Client's email address
     private String email;
@@ -27,13 +24,10 @@ public class ClientDTO {
     // Client's address
     private String address;
 
+    // How many projects the Client has
+    private Long totalProjects;
+
     // Client's notes
     private String notes;
-
-    // How many projects the Client has
-    private Integer totalProjects;
-
-    // Designer's Name
-    private String designer;
 
 }
