@@ -2,7 +2,7 @@ package com.interiordesignplanner.project;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,15 +18,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientService;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.mapper.ProjectMapper;
 
@@ -49,7 +60,6 @@ public class ProjectServiceTest {
     public ProjectRepository projectRepository;
 
     // Project mapper
-    @Autowired
     private ProjectMapper projectMapper;
 
     // Mock project service
@@ -60,9 +70,22 @@ public class ProjectServiceTest {
     @Mock
     private ClientService clientService;
 
+    @Mock
+    private AuthenticationService authenticationService;
+
+    @Mock
+    private DesignerService designerService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     private Client client1;
 
     private Project project1, project2;
+
+    private User user, admin;
+
+    private Designer designer;
 
     @BeforeEach
     // Created mock project tests
@@ -87,8 +110,34 @@ public class ProjectServiceTest {
                     return destination;
                 });
 
-        projectMapper = new ProjectMapper(modelMapper);
-        projectService = new ProjectService(projectRepository, clientService, projectMapper);
+        this.projectMapper = new ProjectMapper(modelMapper);
+
+        projectService = new ProjectService(projectRepository, clientService, authenticationService,
+                designerService, projectMapper);
+
+        user = new User();
+        user.setId(1L);
+        user.setFirstName("Sam");
+        user.setLastName("Williams");
+        user.setEmail("samwilliams@gmail.com");
+        user.setMobileNumber("07348294736");
+        user.setRoles(Roles.DESIGNER);
+        user.setUsername("sam");
+        user.setPassword(passwordEncoder.encode("huwa71egyw"));
+
+        admin = new User();
+        admin.setId(2L);
+        admin.setFirstName("Grace");
+        admin.setLastName("Smith");
+        admin.setEmail("gracesmith@gmail.com");
+        admin.setMobileNumber("07392648274");
+        admin.setRoles(Roles.ADMIN);
+        admin.setUsername("grace");
+        admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
+
+        designer = new Designer();
+        designer.setId(1L);
+        designer.setUser(user);
 
         // Created mock Client
         client1 = new Client();
@@ -99,6 +148,7 @@ public class ProjectServiceTest {
         client1.setPhone("07314708068");
         client1.setAddress("33 Elm Street, London, N2R 652");
         client1.setNotes("Prefers eco-friendly materials");
+        client1.setDesigner(designer);
 
         // Created mock Projects
         project1 = new Project();
@@ -134,17 +184,62 @@ public class ProjectServiceTest {
         // Arrange: A list created with projects and mock Repository to test if all
         // projects are returned
 
-        when(projectRepository.findAll()).thenReturn(List.of(project1, project2));
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Project> projects = new ArrayList<>();
+        projects.add(project1);
+        projects.add(project2);
+
+        Page<Project> mockPage = new PageImpl<>(projects);
+
+        when(projectRepository.findAll(pageable)).thenReturn(mockPage);
 
         // Act: Query the service layer the if all projects are returnes
-        List<ProjectDTO> result = projectService.getAllProjects();
+        Page<ProjectDTO> result = projectService.getAllProjects(null, pageable);
 
         // Assert: Verifies that the result is not null and projects are retrieved
         assertNotNull(result);
-        assertEquals(result.size(), 2);
+        assertEquals(result.getTotalElements(), 2);
         assertThat(result).extracting(ProjectDTO::getBudget).containsExactly(BigDecimal.valueOf(20000.00),
                 BigDecimal.valueOf(5000.00));
-        verify(projectRepository).findAll();
+        verify(projectRepository).findAll(any(
+                Pageable.class));
+        verifyNoMoreInteractions(projectRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get all projects returns one of project
+     */
+    @Test
+    @DisplayName("GetAllProjects: Returns one project in the database")
+    public void testGetAllCProjects_ReturnsFilteredProject() {
+        // Arrange: A page created with projects, pageable and mock Repository to test
+        // if
+        // all
+        // projects are returned
+
+        String filter = "filter=room===Loft";
+
+        Pageable pageable = PageRequest.of(2, 2);
+        List<Project> projects = new ArrayList<>();
+        projects.add(project1);
+
+        Page<Project> mockPage = new PageImpl<>(projects);
+
+        when(projectRepository.findAll(ArgumentMatchers.<Specification<Project>>any(), any(
+                Pageable.class)))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer the if all projects are returned
+        Page<ProjectDTO> result = projectService.getAllProjects(filter, pageable);
+
+        // Assert: Verifies that the result is not null and projects are retrieved
+        assertNotNull(result);
+        assertEquals(result.getContent().size(), 1);
+        assertThat(result).extracting(ProjectDTO::getId).containsExactly(1L);
+        assertThat(result).extracting(ProjectDTO::getProjectName).containsExactly("Industrial Loft Redesign");
+        verify(projectRepository).findAll(ArgumentMatchers.<Specification<Project>>any(), any(
+                Pageable.class));
         verifyNoMoreInteractions(projectRepository);
 
     }
@@ -157,14 +252,99 @@ public class ProjectServiceTest {
     public void testGetAllProjects_ReturnsEmptyList() {
         // Arrange: Empty list is created and Mock Repository to test if it returns a
         // empty list
-        List<Project> projects = Collections.emptyList();
-        when(projectRepository.findAll()).thenReturn(projects);
 
-        // Act: Query the service layer the if a empty list is returned
-        List<ProjectDTO> result = projectService.getAllProjects();
+        String filter = "filter=notes==null";
+        Pageable pageable = PageRequest.of(2, 2);
+        Page<Project> projects = Page.empty();
+        when(projectRepository.findAll(ArgumentMatchers.<Specification<Project>>any(), any(
+                Pageable.class))).thenReturn(projects);
+
+        Page<ProjectDTO> result = projectService.getAllProjects(filter, pageable);
 
         // Assert: Verifies that the result empty
         assertThat(result).isEqualTo(projects);
+    }
+
+    /**
+     * Tests for checking if Get projects returns a page of projects for the
+     * designer
+     */
+    @Test
+    @DisplayName("GetProjectsByDesigner: Returns all of the projects for designer")
+    public void testGetProjectsByDesigner_ReturnsAllProjects() {
+        // Arrange: A page created with projects, pageable and mock Repository to test
+        // if
+        // all the designer's projects are returned
+
+        ProjectSummaryDTO projectSummaryDTO1 = new ProjectSummaryDTO(1L, "Jessica Cook", "Industrial Loft Redesign",
+                ProjectStatus.PLANNING, BigDecimal.valueOf(20000.00), LocalDate.of(2025, 07, 20),
+                LocalDate.of(2026, 01, 25), "Exposed brick walls, metal fixtures, and reclaimed wood accents");
+
+        ProjectSummaryDTO projectSummaryDTO2 = new ProjectSummaryDTO(2L, "Alex Price",
+                "Luxury Master Bedroom",
+                ProjectStatus.ON_HOLD, BigDecimal.valueOf(5000.00),
+                LocalDate.of(2025, 11,
+                        10),
+                LocalDate.of(2026, 5, 5),
+                "Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ProjectSummaryDTO> mockPage = new PageImpl<>(List.of(projectSummaryDTO1, projectSummaryDTO2));
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
+
+        when(projectRepository.findProjectsByDesignerId(user.getId(), pageable))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer the if all the designer's clients are returned
+        Page<ProjectSummaryDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable);
+
+        // Assert: Verifies that the result is not null and clients are retrieved
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), 2);
+        assertThat(result).extracting(ProjectSummaryDTO::getId).containsExactly(1L, 2L);
+        assertThat(result).extracting(ProjectSummaryDTO::getClientName).containsExactly(
+                "Jessica Cook", "Alex Price");
+        verify(projectRepository).findProjectsByDesignerId(any(), any(
+                Pageable.class));
+        verifyNoMoreInteractions(projectRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get projects returns a page of projects for the
+     * designer
+     */
+    @Test
+    @DisplayName("GetProjectsByDesigner: Returns Empty Page")
+    public void testGetProjectsByDesigner_EmptyPage() {
+        // Arrange: Empty page is created and Mock Repository to test if it returns a
+        // empty page
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ProjectSummaryDTO> mockPage = Page.empty();
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
+
+        when(projectRepository.findProjectsByDesignerId(user.getId(), pageable))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer if a empty page is returned
+        Page<ProjectSummaryDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable);
+
+        // Assert: Verifies that the page is empty
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), 0);
+        verify(projectRepository).findProjectsByDesignerId(any(), any(
+                Pageable.class));
+        verifyNoMoreInteractions(projectRepository);
+
     }
 
     /**
@@ -242,7 +422,7 @@ public class ProjectServiceTest {
         when(projectRepository.save(any(Project.class))).thenReturn(savedProject);
 
         // Act: Query the service layer the if Project is there
-        ProjectDTO result = projectService.createProject(projectDTO, client1.getId());
+        ProjectDTO result = projectService.createProject(projectDTO, client1.getId(), user.getUsername());
 
         // Assert: Verifies that the result is not null and Project has been created
         assertNotNull(result);
@@ -264,12 +444,14 @@ public class ProjectServiceTest {
         ProjectUpdateDTO updatedProject = new ProjectUpdateDTO();
         updatedProject.setStatus(ProjectStatus.ACTIVE);
 
+        when(clientService.findClient(1L)).thenReturn(client1);
+
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project2));
         when(projectRepository.save(project2)).thenReturn(project2);
 
         // Act: Query the service layer to return the Project with the id and update the
         // Project's details
-        ProjectDTO result = projectService.updateProject(projectId, updatedProject);
+        ProjectDTO result = projectService.updateProject(projectId, updatedProject, user.getUsername());
 
         // Assert: Verifies that the Project was updated
         assertNotNull(result);
@@ -296,7 +478,7 @@ public class ProjectServiceTest {
 
         // Act: Queries if the exception is thrown if Project is not found when updating
         ProjectNotFoundException exception = assertThrows(ProjectNotFoundException.class, () -> {
-            projectService.updateProject(projectId, updateProject);
+            projectService.updateProject(projectId, updateProject, user.getUsername());
         });
 
         // Assert: Verifies exception matches the thrown exception
@@ -312,12 +494,14 @@ public class ProjectServiceTest {
     @DisplayName("DeleteProject: Deletes Project details")
     public void testDeleteProject_ReturnsDeleted() {
         // Arrange: Sets the ProjectId and mocks the repository
+
+        when(clientService.findClient(1L)).thenReturn(client1);
         Long projectId = 2L;
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project2));
 
         // Act: Query the service layer to return the Project with the id and delete the
         // Project
-        projectService.deleteProject(projectId);
+        projectService.deleteProject(projectId, user.getUsername());
 
         // Assert: Verifies that the Project was deleted and is not found
         verify(projectRepository).delete(project2);
@@ -331,20 +515,21 @@ public class ProjectServiceTest {
     @Test
     @DisplayName("DeleteProject: Project ID is not found")
     public void testDeleteProject_ReturnsNotFound() {
-        // Arrange: Sets the ProjectId sand mocks the repository
+        // Arrange: Sets the ProjectId and mocks the repository
+
         Long projectId = 2L;
         String errorMessage = "Project is not found with " + "projectId" + ": " + projectId;
         when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
         // Act: Queries if the exception is thrown if Project is not found when deleting
         ProjectNotFoundException exception = assertThrows(ProjectNotFoundException.class, () -> {
-            projectService.deleteProject(projectId);
+            projectService.deleteProject(projectId, user.getUsername());
         });
 
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(projectRepository).findById(projectId);
-        verify(projectRepository, never()).delete(any());
+        verify(projectRepository, never()).delete(any(Project.class));
 
     }
 

@@ -1,15 +1,25 @@
 package com.interiordesignplanner.project;
 
 import java.time.Instant;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
+import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientService;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.mapper.ProjectMapper;
 
+import io.github.perplexhub.rsql.RSQLJPASupport;
 import jakarta.transaction.Transactional;
 
 /**
@@ -34,26 +44,62 @@ public class ProjectService {
     // Client Service layer
     private final ClientService clientService;
 
+    // User Service
+    private final AuthenticationService authenticationService;
+
+    // Designer Service
+    private final DesignerService designerService;
+
     // Project Mapper
     private final ProjectMapper projectMapper;
 
     // Constructor
     public ProjectService(ProjectRepository projectRepository, ClientService clientService,
+            AuthenticationService authenticationService, DesignerService designerService,
             ProjectMapper projectMapper) {
         this.projectRepository = projectRepository;
         this.clientService = clientService;
         this.projectMapper = projectMapper;
+        this.authenticationService = authenticationService;
+        this.designerService = designerService;
     }
 
     /**
      * Returns all projects on the system and their room.
      */
-    public List<ProjectDTO> getAllProjects() {
-        return projectRepository.findAll().stream()
-                .map(project -> {
-                    ProjectDTO projectDTO = projectMapper.toDto(project);
-                    return projectDTO;
-                }).toList();
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<ProjectDTO> getAllProjects(String filter, Pageable pageable) {
+
+        Page<Project> projects;
+
+        if (filter != null) {
+            Specification<Project> specfication = RSQLJPASupport.toSpecification(filter);
+            projects = projectRepository.findAll(specfication, pageable);
+        } else {
+            projects = projectRepository.findAll(pageable);
+        }
+
+        return projects.map(project -> {
+            ProjectDTO projectDTO = projectMapper.toDto(project);
+            return projectDTO;
+        });
+    }
+
+    /**
+     * Returns the designer's client's project details.
+     * 
+     * @param username retrieves the projects assigned designer
+     * @throws UsernameNotFoundException if the user is not found
+     * @throws DesignerNotFoundException if the designer is not found
+     * @return logged in designer's list of projects
+     */
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<ProjectSummaryDTO> getProjectsByDesigner(String username, Pageable pageable) {
+
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
+
+        return projectRepository.findProjectsByDesignerId(designer.getId(), pageable);
     }
 
     /**
@@ -68,6 +114,7 @@ public class ProjectService {
      * @param id project's unique identifier
      * @throws ProjectNotFoundException if the project is not found
      */
+    @PreAuthorize("hasRole('ADMIN')")
     public ProjectDTO getProjectById(Long id) {
 
         Project project = findProject(id);
@@ -88,18 +135,18 @@ public class ProjectService {
      * @param status project status enum
      * @returns projects with same status
      */
-    public List<ProjectDTO> getProjectsByStatus(ProjectStatus status) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<ProjectDTO> getProjectsByStatus(ProjectStatus status, Pageable pageable) {
 
         if (status == null) {
             throw new ProjectNotFoundException("projectStatus", status);
         }
 
         return projectRepository.findProjectsByStatus(
-                status).stream()
-                .map(project -> {
+                status, pageable).map(project -> {
                     ProjectDTO projectDTO = projectMapper.toDto(project);
                     return projectDTO;
-                }).toList();
+                });
 
     }
 
@@ -115,8 +162,9 @@ public class ProjectService {
      * 
      * @returns order by due date
      */
-    public List<Deadline> sortsProjectsByDueDate() {
-        return projectRepository.getAllProjectsOrderByDueDate();
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<Deadline> sortsProjectsByDueDate(Pageable pageable) {
+        return projectRepository.getAllProjectsOrderByDueDate(pageable);
     }
 
     /**
@@ -131,12 +179,20 @@ public class ProjectService {
      * @param clientId client's unique identifier
      * @throws IllegalArgumentException the project fields are null
      */
-    public ProjectDTO createProject(ProjectCreateDTO projectCreateDTO, Long clientId) throws IllegalArgumentException {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ProjectDTO createProject(ProjectCreateDTO projectCreateDTO, Long clientId, String username) {
+
+        Client existingClient = clientService.findClient(clientId);
+
+        if (existingClient.getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
         if (projectCreateDTO == null && clientId == null) {
             throw new IllegalArgumentException("Project must not be null");
         }
-        Client client = clientService.findClient(clientId);
-        projectCreateDTO.setClient(client);
+
+        projectCreateDTO.setClient(existingClient);
         Project project = projectMapper.toEntity(projectCreateDTO);
         Project savedProject = projectRepository.save(project);
 
@@ -158,9 +214,16 @@ public class ProjectService {
      * @param project project object to be updated
      * @return updated project
      */
-    public ProjectDTO updateProject(Long id, ProjectUpdateDTO projectUpdateDTO) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ProjectDTO updateProject(Long id, ProjectUpdateDTO projectUpdateDTO, String username) {
 
         Project existingProject = findProject(id);
+
+        Client existingClient = clientService.findClient(existingProject.getClient().getId());
+
+        if (existingClient.getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
 
         // Updated Project Status to COMPLETED, sets completedAt field
         if (existingProject.getStatus() == ProjectStatus.COMPLETED
@@ -184,8 +247,15 @@ public class ProjectService {
      * @param id project's unique identifier
      * @return project is deleted
      */
-    public void deleteProject(Long id) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public void deleteProject(Long id, String username) {
         Project project = findProject(id);
+        Client existingClient = clientService.findClient(project.getClient().getId());
+
+        if (existingClient.getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
         projectRepository.delete(project);
     }
 
@@ -202,15 +272,21 @@ public class ProjectService {
      * @param projectId project's unique identifier
      * @return project is reassigned
      */
-    public ProjectDTO reassignClient(Long clientId, Long projectId) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ProjectDTO reassignClient(Long clientId, Long projectId, String username) {
         Project existingProject = findProject(projectId);
         Client client = clientService.findClient(clientId);
 
+        if (client.getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
         if (existingProject == null || client == null) {
             throw new ProjectNotFoundException("projectId", projectId);
-        } else {
-            existingProject.setClient(client);
         }
+
+        existingProject.setClient(client);
+
         return projectMapper.toDto(projectRepository.save(existingProject));
     }
 
