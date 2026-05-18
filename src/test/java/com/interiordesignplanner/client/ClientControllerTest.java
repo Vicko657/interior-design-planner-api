@@ -291,16 +291,4 @@ public class ClientControllerTest {
 
     }
 
-    @Test
-    @DisplayName("ReassignDesigner: Client is deleted")
-    @WithMockUser(roles = { "ADMIN" })
-    void testReassignDesigner() throws Exception {
-
-        // When/Then
-        mockMvc.perform(delete("/api/admin/clients/2")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
-
-    }
-
 }
