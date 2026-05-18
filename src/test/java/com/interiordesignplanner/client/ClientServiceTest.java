@@ -28,11 +28,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.Roles;
 import com.interiordesignplanner.authentication.User;
-import com.interiordesignplanner.authentication.UserRepository;
 import com.interiordesignplanner.designer.Designer;
-import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ClientNotFoundException;
 import com.interiordesignplanner.mapper.ClientMapper;
 import com.interiordesignplanner.project.ProjectRepository;
@@ -63,10 +63,10 @@ public class ClientServiceTest {
     private ProjectRepository projectRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private AuthenticationService authenticationService;
 
     @Mock
-    private DesignerRepository designerRepository;
+    private DesignerService designerService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -89,8 +89,9 @@ public class ClientServiceTest {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         this.clientMapper = new ClientMapper(modelMapper);
 
-        clientService = new ClientService(clientRepository, clientMapper, userRepository,
-                designerRepository);
+        clientService = new ClientService(clientRepository, clientMapper,
+                authenticationService,
+                designerService);
 
         user = new User();
         user.setId(1L);
@@ -252,9 +253,9 @@ public class ClientServiceTest {
 
         Page<ClientSummaryDTO> mockPage = new PageImpl<>(List.of(clientSummaryDTO1, clientSummaryDTO2));
 
-        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+        when(authenticationService.findUser("sam")).thenReturn(user);
 
-        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
         when(clientRepository.findClientsByDesignerId(user.getId(), pageable))
                 .thenReturn(mockPage);
@@ -287,9 +288,9 @@ public class ClientServiceTest {
 
         Page<ClientSummaryDTO> mockPage = Page.empty();
 
-        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+        when(authenticationService.findUser("sam")).thenReturn(user);
 
-        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
         when(clientRepository.findClientsByDesignerId(user.getId(), pageable))
                 .thenReturn(mockPage);
@@ -372,9 +373,9 @@ public class ClientServiceTest {
         savedClient.setNotes("Loves minimalist design");
         savedClient.setDesigner(designer);
 
-        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+        when(authenticationService.findUser("sam")).thenReturn(user);
 
-        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
         when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
 

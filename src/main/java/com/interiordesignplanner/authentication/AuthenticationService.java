@@ -8,12 +8,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.authentication.password.CompromisedPasswordDecision;
 import org.springframework.security.authentication.password.CompromisedPasswordException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.exceptions.UserExistsException;
+import com.interiordesignplanner.exceptions.UserNotFoundException;
 import com.interiordesignplanner.mapper.UserMapper;
 import com.interiordesignplanner.security.ApplicationUserDetails;
 import com.interiordesignplanner.security.ApplicationUserDetailsService;
@@ -159,6 +161,20 @@ public class AuthenticationService {
         designer.setUser(savedUser);
         designerRepository.save(designer);
 
+    }
+
+    /**
+     * Retrieved the User's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the user object to be deleted
+     * @throws UserNotFoundException if the user is not found
+     * @return the user
+     */
+    public User findUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User is not found"));
     }
 
 }

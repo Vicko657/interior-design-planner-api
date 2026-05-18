@@ -12,12 +12,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.User;
-import com.interiordesignplanner.authentication.UserRepository;
 import com.interiordesignplanner.designer.Designer;
-import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ClientNotFoundException;
-import com.interiordesignplanner.exceptions.UserNotFoundException;
 
 /**
  * Client service class provides business logic and operations relating to a
@@ -39,17 +38,18 @@ public class ClientService {
     private final ClientMapper clientMapper;
 
     // User Repository
-    private final UserRepository userRepository;
+    private final AuthenticationService authenticationService;
 
     // Designer Repository
-    private final DesignerRepository designerRepository;
+    private final DesignerService designerService;
 
-    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper, UserRepository userRepository,
-            DesignerRepository designerRepository) {
+    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper,
+            AuthenticationService authenticationService,
+            DesignerService designerService) {
         this.clientRepository = clientRepository;
         this.clientMapper = clientMapper;
-        this.userRepository = userRepository;
-        this.designerRepository = designerRepository;
+        this.authenticationService = authenticationService;
+        this.designerService = designerService;
     }
 
     /**
@@ -96,8 +96,8 @@ public class ClientService {
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<ClientSummaryDTO> getClientsByDesigner(String username, Pageable pageable) {
 
-        User user = findUser(username);
-        Designer designer = findDesigner(user.getId());
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
 
         return clientRepository.findClientsByDesignerId(designer.getId(), pageable);
     }
@@ -137,8 +137,8 @@ public class ClientService {
     public ClientDTO createClient(ClientCreateDTO clientCreateDTO, String username) {
 
         // Finds the designer and assigns the user to the new client
-        User user = findUser(username);
-        Designer designer = findDesigner(user.getId());
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
 
         clientCreateDTO.setDesigner(designer);
 
@@ -204,34 +204,6 @@ public class ClientService {
     public Client findClient(Long id) {
         return clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException("clientId", id));
-    }
-
-    /**
-     * Retrieved the User's entity
-     * 
-     * Reduces code repetition
-     * 
-     * @param id retrieves the user object to be deleted
-     * @throws UserNotFoundException if the user is not found
-     * @return the user
-     */
-    public User findUser(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User is not found"));
-    }
-
-    /**
-     * Retrieved the Designer's entity
-     * 
-     * Reduces code repetition
-     * 
-     * @param id retrieves the user object to be deleted
-     * @throws UserNotFoundException if the user is not found
-     * @return the user
-     */
-    public Designer findDesigner(Long userId) {
-        return designerRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException("userId", userId));
     }
 
 }
