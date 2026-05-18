@@ -2,7 +2,6 @@ package com.interiordesignplanner.room;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,15 +26,12 @@ import com.interiordesignplanner.project.ProjectService;
 public class RoomService {
 
     // Project Service layer
-    @Autowired
     private final ProjectService projectService;
 
     // Room CRUD Interface
-    @Autowired
     private final RoomRepository roomRepository;
 
     // Room Mapper
-    @Autowired
     private final RoomMapper roomMapper;
 
     // Constructor

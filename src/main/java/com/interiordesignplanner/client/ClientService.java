@@ -4,7 +4,6 @@ import com.interiordesignplanner.mapper.ClientMapper;
 
 import io.github.perplexhub.rsql.RSQLJPASupport;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,15 +33,15 @@ import com.interiordesignplanner.exceptions.UserNotFoundException;
 public class ClientService {
 
     // Client CRUD Interface
-    @Autowired
-    public ClientRepository clientRepository;
+    public final ClientRepository clientRepository;
 
     // Client Mapper
-    @Autowired
-    private ClientMapper clientMapper;
+    private final ClientMapper clientMapper;
 
+    // User Repository
     private final UserRepository userRepository;
 
+    // Designer Repository
     private final DesignerRepository designerRepository;
 
     public ClientService(ClientRepository clientRepository, ClientMapper clientMapper, UserRepository userRepository,

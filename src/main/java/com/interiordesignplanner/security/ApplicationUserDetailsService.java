@@ -1,6 +1,5 @@
 package com.interiordesignplanner.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ import com.interiordesignplanner.authentication.UserRepository;
 @Service
 public class ApplicationUserDetailsService implements UserDetailsService {
 
-    @Autowired
     private final UserRepository userRepository;
 
     public ApplicationUserDetailsService(UserRepository userRepository) {

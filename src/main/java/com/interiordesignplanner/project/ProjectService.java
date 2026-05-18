@@ -3,7 +3,6 @@ package com.interiordesignplanner.project;
 import java.time.Instant;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.interiordesignplanner.client.Client;
@@ -30,15 +29,12 @@ import jakarta.transaction.Transactional;
 public class ProjectService {
 
     // Project CRUD Interface
-    @Autowired
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
 
     // Client Service layer
-    @Autowired
     private final ClientService clientService;
 
     // Project Mapper
-    @Autowired
     private final ProjectMapper projectMapper;
 
     // Constructor
