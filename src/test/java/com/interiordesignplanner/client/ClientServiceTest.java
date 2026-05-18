@@ -1,6 +1,6 @@
 package com.interiordesignplanner.client;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,11 +16,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.authentication.UserRepository;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.exceptions.ClientNotFoundException;
 import com.interiordesignplanner.mapper.ClientMapper;
 import com.interiordesignplanner.project.ProjectRepository;
@@ -50,11 +62,24 @@ public class ClientServiceTest {
     @Mock
     private ProjectRepository projectRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private DesignerRepository designerRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     // Mock client service
     @InjectMocks
     private ClientService clientService;
 
     private Client client1, client2;
+
+    private User user, admin;
+
+    private Designer designer;
 
     @BeforeEach
     public void setUp() {
@@ -64,7 +89,32 @@ public class ClientServiceTest {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         this.clientMapper = new ClientMapper(modelMapper);
 
-        clientService = new ClientService(clientRepository, clientMapper, projectRepository);
+        clientService = new ClientService(clientRepository, clientMapper, userRepository,
+                designerRepository);
+
+        user = new User();
+        user.setId(1L);
+        user.setFirstName("Sam");
+        user.setLastName("Williams");
+        user.setEmail("samwilliams@gmail.com");
+        user.setMobileNumber("07348294736");
+        user.setRoles(Roles.DESIGNER);
+        user.setUsername("sam");
+        user.setPassword(passwordEncoder.encode("huwa71egyw"));
+
+        admin = new User();
+        admin.setId(2L);
+        admin.setFirstName("Grace");
+        admin.setLastName("Smith");
+        admin.setEmail("gracesmith@gmail.com");
+        admin.setMobileNumber("07392648274");
+        admin.setRoles(Roles.ADMIN);
+        admin.setUsername("grace");
+        admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
+
+        designer = new Designer();
+        designer.setId(1L);
+        designer.setUser(user);
 
         // Created mock client tests
         client1 = new Client();
@@ -75,6 +125,7 @@ public class ClientServiceTest {
         client1.setPhone("07314708068");
         client1.setAddress("33 Elm Street, London, N2R 652");
         client1.setNotes("Prefers eco-friendly materials");
+        client1.setDesigner(designer);
 
         client2 = new Client();
         client2.setId(2L);
@@ -84,49 +135,174 @@ public class ClientServiceTest {
         client2.setPhone("07828096962");
         client2.setAddress("249 The Grove, Reading, R84 J5N");
         client2.setNotes("Needs child-friendly furniture");
+        client2.setDesigner(designer);
 
     }
 
     /**
-     * Tests for checking if Get all clients returns a list of projects
+     * Tests for checking if Get all clients returns a page of clients
      */
     @Test
     @DisplayName("GetAllClients: Returns all of the clients in the database")
     public void testGetAllClients_ReturnsAllClients() {
-        // Arrange: A list created with clients and mock Repository to test if all
+        // Arrange: A page created with clients, pageable and mock Repository to test if
+        // all
         // clients are returned
 
-        when(clientRepository.findAll()).thenReturn(List.of(client1, client2));
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Client> clients = new ArrayList<>();
+        clients.add(client1);
+        clients.add(client2);
+
+        Page<Client> mockPage = new PageImpl<>(clients);
+
+        when(clientRepository.findAll(pageable))
+                .thenReturn(mockPage);
 
         // Act: Query the service layer the if all clients are returned
-        List<ClientDTO> result = clientService.getAllClients();
+        Page<ClientDTO> result = clientService.getAllClients(null, pageable);
 
-        // Assert: Verifies that the result is not null and projects are retrieved
+        // Assert: Verifies that the result is not null and clients are retrieved
         assertNotNull(result);
-        assertEquals(result.size(), 2);
+        assertEquals(result.getTotalElements(), 2);
         assertThat(result).extracting(ClientDTO::getId).containsExactly(1L, 2L);
         assertThat(result).extracting(ClientDTO::getFirstName).containsExactly("Jessica", "Alex");
-        verify(clientRepository).findAll();
+        verify(clientRepository).findAll(any(
+                Pageable.class));
         verifyNoMoreInteractions(clientRepository);
 
     }
 
     /**
-     * Tests for checking if Get all clients returns a empty list
+     * Tests for checking if Get all clients returns one of client
      */
     @Test
-    @DisplayName("GetAllClients: Returns empty list")
-    public void testGetAllClients_ReturnsEmptyList() {
-        // Arrange: Empty list is created and Mock Repository to test if it returns a
-        // empty list
-        List<Client> clients = Collections.emptyList();
-        when(clientRepository.findAll()).thenReturn(clients);
+    @DisplayName("GetAllClients: Returns one client in the database")
+    public void testGetAllClients_ReturnsFilteredClient() {
+        // Arrange: A page created with clients, pageable and mock Repository to test if
+        // all
+        // clients are returned
 
-        // Act: Query the service layer the if a empty list is returned
-        List<ClientDTO> result = clientService.getAllClients();
+        String filter = "filter=firstName==Alex";
+
+        Pageable pageable = PageRequest.of(2, 2);
+        List<Client> clients = new ArrayList<>();
+        clients.add(client2);
+
+        Page<Client> mockPage = new PageImpl<>(clients);
+
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), any(
+                Pageable.class)))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer the if all clients are returned
+        Page<ClientDTO> result = clientService.getAllClients(filter, pageable);
+
+        // Assert: Verifies that the result is not null and projects are retrieved
+        assertNotNull(result);
+        assertEquals(result.getContent().size(), 1);
+        assertThat(result).extracting(ClientDTO::getId).containsExactly(2L);
+        assertThat(result).extracting(ClientDTO::getFirstName).containsExactly("Alex");
+        verify(clientRepository).findAll(ArgumentMatchers.<Specification<Client>>any(), any(
+                Pageable.class));
+        verifyNoMoreInteractions(clientRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get all clients returns a empty page
+     */
+    @Test
+    @DisplayName("GetAllClients: Returns empty page")
+    public void testGetAllClients_ReturnsEmptyPage() {
+        // Arrange: Empty page is created and Mock Repository to test if it returns a
+        // empty page
+
+        String filter = "filter=notes==null";
+
+        Pageable pageable = PageRequest.of(2, 2);
+        Page<Client> clients = Page.empty();
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), any(Pageable.class)))
+                .thenReturn(clients);
+
+        // Act: Query the service layer if a empty page is returned
+        Page<ClientDTO> result = clientService.getAllClients(filter, pageable);
 
         // Assert: Verifies that the result is empty
         assertThat(result).isEqualTo(clients);
+
+    }
+
+    /**
+     * Tests for checking if Get clients returns a page of clients for the designer
+     */
+    @Test
+    @DisplayName("GetClientsByDesigner: Returns all of the clients for designer")
+    public void testGetClientsByDesigner_ReturnsAllClients() {
+        // Arrange: A page created with clients, pageable and mock Repository to test if
+        // all the designer's clients are returned
+
+        ClientSummaryDTO clientSummaryDTO1 = new ClientSummaryDTO(1L, "Jessica Cook", "jessicacook@gmail.com",
+                "07314708068", "33 Elm Street, London, N2R 652", 2L, "Prefers eco-friendly materials");
+
+        ClientSummaryDTO clientSummaryDTO2 = new ClientSummaryDTO(2L, "Alex Price", "aprice@gmail.com", "07828096962",
+                "249 The Grove, Reading, R84 J5N", 5L, "Needs child-friendly furniture");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ClientSummaryDTO> mockPage = new PageImpl<>(List.of(clientSummaryDTO1, clientSummaryDTO2));
+
+        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+
+        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
+
+        when(clientRepository.findClientsByDesignerId(user.getId(), pageable))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer the if all the designer's clients are returned
+        Page<ClientSummaryDTO> result = clientService.getClientsByDesigner(user.getUsername(), pageable);
+
+        // Assert: Verifies that the result is not null and clients are retrieved
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), 2);
+        assertThat(result).extracting(ClientSummaryDTO::getId).containsExactly(1L, 2L);
+        assertThat(result).extracting(ClientSummaryDTO::getNotes).containsExactly(
+                "Prefers eco-friendly materials", "Needs child-friendly furniture");
+        verify(clientRepository).findClientsByDesignerId(any(), any(
+                Pageable.class));
+        verifyNoMoreInteractions(clientRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get clients returns a page of clients for the designer
+     */
+    @Test
+    @DisplayName("GetClientsByDesigner: Returns Empty Page")
+    public void testGetClientsByDesigner_EmptyPage() {
+        // Arrange: Empty page is created and Mock Repository to test if it returns a
+        // empty page
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ClientSummaryDTO> mockPage = Page.empty();
+
+        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+
+        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
+
+        when(clientRepository.findClientsByDesignerId(user.getId(), pageable))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer if a empty page is returned
+        Page<ClientSummaryDTO> result = clientService.getClientsByDesigner(user.getUsername(), pageable);
+
+        // Assert: Verifies that the page is empty
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), 0);
+        verify(clientRepository).findClientsByDesignerId(any(), any(
+                Pageable.class));
+        verifyNoMoreInteractions(clientRepository);
 
     }
 
@@ -185,21 +361,25 @@ public class ClientServiceTest {
                 "harrissimon@gmail.com",
                 "07855443322",
                 "89 Riverbank Road, Birmingham, B23 O92",
-                "Loves minimalist design");
+                "Loves minimalist design", designer);
 
         Client savedClient = new Client();
-        savedClient.setId(3L);
         savedClient.setFirstName("Simon");
         savedClient.setLastName("Harris");
         savedClient.setEmail("harrissimon@gmail.com");
         savedClient.setPhone("07855443322");
         savedClient.setAddress("89 Riverbank Road, Birmingham, B23 O92");
         savedClient.setNotes("Loves minimalist design");
+        savedClient.setDesigner(designer);
+
+        when(userRepository.findByUsername("sam")).thenReturn(Optional.of(user));
+
+        when(designerRepository.findByUserId(user.getId())).thenReturn(Optional.of(designer));
 
         when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
 
         // Act: Query the service layer the if client is there
-        ClientDTO result = clientService.createClient(clientDTO);
+        ClientDTO result = clientService.createClient(clientDTO, user.getUsername());
 
         // Assert: Verifies that the result is not null and client has been created
         assertNotNull(result);
@@ -226,7 +406,7 @@ public class ClientServiceTest {
 
         // Act: Query the service layer to return the client with the id and update the
         // client's details
-        ClientDTO result = clientService.updateClient(clientId, updatedClient);
+        ClientDTO result = clientService.updateClient(clientId, updatedClient, user.getUsername());
 
         // Assert: Verifies that the client was updated
         assertNotNull(result);
@@ -251,7 +431,7 @@ public class ClientServiceTest {
 
         // Act: Queries if the exception is thrown if client is not found when updating
         ClientNotFoundException exception = assertThrows(ClientNotFoundException.class, () -> {
-            clientService.updateClient(clientId, updateClient);
+            clientService.updateClient(clientId, updateClient, user.getUsername());
         });
 
         // Assert: Verifies exception matches the thrown exception
@@ -300,7 +480,7 @@ public class ClientServiceTest {
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(clientRepository).findById(clientId);
-        verify(clientRepository, never()).delete(any());
+        verify(clientRepository, never()).delete(ArgumentMatchers.<Specification<Client>>any());
 
     }
 

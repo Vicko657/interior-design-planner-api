@@ -2,23 +2,29 @@ package com.interiordesignplanner.client;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.interiordesignplanner.security.ApplicationUserDetails;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -27,8 +33,9 @@ import org.springframework.web.bind.annotation.PathVariable;
  * 
  * API endpoints to complete CRUD operations.
  */
+@Validated
 @RestController
-@RequestMapping("/api/clients")
+@RequestMapping("/api")
 public class ClientController {
 
     // Client Service layer
@@ -45,9 +52,29 @@ public class ClientController {
     @Operation(summary = "Retrieves all clients", description = "Retrieves all the clients details, including their name, email, phoneNo, address, projects and other details")
     @ApiResponse(responseCode = "200", description = "All clients are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping
-    public List<ClientDTO> getAllClients() {
-        return clientService.getAllClients();
+    @GetMapping(value = "/admin/clients", produces = "application/json")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ClientDTO>> getAllClients(
+            @Valid @RequestParam(required = false) String filter,
+            Pageable pageable) {
+        return ResponseEntity.ok(clientService.getAllClients(filter, pageable));
+    }
+
+    /**
+     * GET: Returns all Clients
+     * 
+     * @return all clients entities on the system
+     * @response 200 if all clients are found
+     */
+    @Tag(name = "clients", description = "Information about the clients")
+    @Operation(summary = "Retrieves all clients", description = "Retrieves all the clients details, including their name, email, phoneNo, address, projects and other details")
+    @ApiResponse(responseCode = "200", description = "All clients are found")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping(value = "/clients", produces = "application/json")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<ClientSummaryDTO> getClients(@AuthenticationPrincipal ApplicationUserDetails applicationUserDetails,
+            Pageable pageable) {
+        return clientService.getClientsByDesigner(applicationUserDetails.getUsername(), pageable);
     }
 
     /**
@@ -63,32 +90,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @GetMapping(value = "/{id}", produces = "application/json")
+    @GetMapping(value = "/admin/clients/{id}", produces = "application/json")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
 
         ClientDTO client = clientService.getClientById(id);
         return ResponseEntity.ok(client);
-    }
-
-    /**
-     * GET: Returns Client with LastName
-     * 
-     * @param lastName the client's lastname
-     * @return client's entity
-     * @response 200 if client was successfully found
-     * @response 404 not found is the client doesnt exist
-     */
-    @Tag(name = "clients", description = "Information about the clients")
-    @Operation(summary = "Finds client by lastname", description = "Returns the client details, including their name, email, phoneNo, address, projects and other details")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Client with lastname was found"),
-            @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @GetMapping(value = "/lastName/{lastName}", produces = "application/json")
-    public ResponseEntity<ClientDTO> getClientsByLastName(@PathVariable("lastName") String lastName) {
-
-        ClientDTO client = clientService.getClientsByLastName(lastName);
-        return ResponseEntity.ok(client);
-
     }
 
     /**
@@ -104,10 +111,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Client was created"),
             @ApiResponse(responseCode = "404", description = "Client columns have not been filled") })
-    @PostMapping(produces = "application/json")
-    public ResponseEntity<ClientDTO> createClient(@Valid @RequestBody ClientCreateDTO clientCreateDTO) {
+    @PostMapping(value = "/clients", produces = "application/json")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ClientDTO> createClient(@Valid @RequestBody ClientCreateDTO clientCreateDTO,
+            @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails) {
 
-        ClientDTO savedClient = clientService.createClient(clientCreateDTO);
+        ClientDTO savedClient = clientService.createClient(clientCreateDTO, applicationUserDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(savedClient);
 
     }
@@ -126,11 +135,13 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was updated"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @PutMapping(value = "/{id}", produces = "application/json")
+    @PutMapping(value = "/clients/{id}", produces = "application/json")
+    @PreAuthorize("hasRole('DESIGNER')")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id,
-            @Valid @RequestBody ClientUpdateDTO clientUpdateDTO) {
+            @Valid @RequestBody ClientUpdateDTO clientUpdateDTO,
+            @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails) {
 
-        ClientDTO updatedClient = clientService.updateClient(id, clientUpdateDTO);
+        ClientDTO updatedClient = clientService.updateClient(id, clientUpdateDTO, applicationUserDetails.getUsername());
         return ResponseEntity.ok(updatedClient);
 
     }
@@ -148,7 +159,8 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Client with id was deleted"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @DeleteMapping(value = "/{id}", produces = "application/json")
+    @DeleteMapping(value = "admin/clients/{id}", produces = "application/json")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
 
         clientService.deleteClient(id);

@@ -1,61 +1,116 @@
 package com.interiordesignplanner.client;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.interiordesignplanner.exceptions.ClientNotFoundException;
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.authentication.UserRepository;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(ClientController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @DisplayName(value = "Client Controller Test Suite")
 public class ClientControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    // Converts the ClientDTO into JSON
+    @Autowired
+    private ClientRepository clientRepository;
+
+    // Converts the clientDTO into JSON
     @Autowired
     private ObjectMapper objectMapper;
 
-    // Mockito Bean replaces MockBean(depreciated)
-    @MockitoBean
-    private ClientService clientService;
+    @Autowired
+    private UserRepository userRepository;
 
-    private ClientDTO clientDTO1, clientDTO2;
+    @Autowired
+    private DesignerRepository designerRepository;
 
-    private ClientCreateDTO clientCreateDTO, clientCreateDTO2;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private ClientUpdateDTO clientUpdateDTO;
 
+    private Designer designer;
+
     @BeforeEach
+    @Transactional
     void setUp() {
 
-        clientCreateDTO = new ClientCreateDTO();
-        clientCreateDTO.setFirstName("Jessica");
-        clientCreateDTO.setLastName("Cook");
-        clientCreateDTO.setEmail("jessicacook@gmail.com");
-        clientCreateDTO.setPhone("07314708068");
-        clientCreateDTO.setAddress("33 Elm Street, London, N2R 652");
-        clientCreateDTO.setNotes("Prefers eco-friendly materials");
+        clientRepository.deleteAll();
+        designerRepository.deleteAll();
+        userRepository.deleteAll();
 
-        clientDTO1 = new ClientDTO();
+        User user = new User();
+        user.setFirstName("Sam");
+        user.setLastName("Williams");
+        user.setEmail("samwilliams@gmail.com");
+        user.setMobileNumber("07348294736");
+        user.setRoles(Roles.DESIGNER);
+        user.setUsername("sam");
+        user.setPassword(passwordEncoder.encode("huwa71egyw"));
+        userRepository.save(user);
+
+        User admin = new User();
+        admin.setFirstName("Grace");
+        admin.setLastName("Smith");
+        admin.setEmail("gracesmith@gmail.com");
+        admin.setMobileNumber("07392648274");
+        admin.setRoles(Roles.ADMIN);
+        admin.setUsername("grace");
+        admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
+        userRepository.save(admin);
+
+        designer = new Designer();
+        designer.setUser(user);
+        designerRepository.save(designer);
+
+        Client client1 = new Client();
+        client1.setFirstName("Jessica");
+        client1.setLastName("Cook");
+        client1.setEmail("jessicacook@gmail.com");
+        client1.setPhone("07314708068");
+        client1.setAddress("33 Elm Street, London, N2R 652");
+        client1.setNotes("Prefers eco-friendly materials");
+        client1.setDesigner(designer);
+        clientRepository.save(client1);
+
+        Client client2 = new Client();
+        client2.setFirstName("Alex");
+        client2.setLastName("Price");
+        client2.setEmail("aprice@gmail.com");
+        client2.setPhone("07828096962");
+        client2.setAddress("249 The Grove, Reading, R84 J5N");
+        client2.setNotes("Needs child-friendly furniture");
+        client2.setDesigner(designer);
+
+        clientRepository.save(client1);
+        clientRepository.save(client2);
+
+        ClientDTO clientDTO1 = new ClientDTO();
         clientDTO1.setId(1L);
         clientDTO1.setFirstName("Jessica");
         clientDTO1.setLastName("Cook");
@@ -64,7 +119,7 @@ public class ClientControllerTest {
         clientDTO1.setAddress("33 Elm Street, London, N2R 652");
         clientDTO1.setNotes("Prefers eco-friendly materials");
 
-        clientDTO2 = new ClientDTO();
+        ClientDTO clientDTO2 = new ClientDTO();
         clientDTO2.setId(2L);
         clientDTO2.setFirstName("Alex");
         clientDTO2.setLastName("Price");
@@ -77,144 +132,175 @@ public class ClientControllerTest {
 
     @Test
     @DisplayName("GetAllClients: Should return all Clients")
+    @WithMockUser(roles = "ADMIN")
     void testGetAllClients() throws Exception {
 
-        // Given
-        when(clientService.getAllClients()).thenReturn(List.of(clientDTO1, clientDTO2));
+        mockMvc.perform(get("/api/admin/clients?page=0&size=10")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].firstName", is("Jessica")))
+                .andExpect(jsonPath("$.content[1].lastName", is("Price")));
 
-        // When/Then
+    }
+
+    @Test
+    @DisplayName("GetAllClients: Should return one Client")
+    @WithMockUser(roles = "ADMIN")
+    void testGetAllClients_ReturnOneClient() throws Exception {
+
+        mockMvc.perform(get("/api/admin/clients?filter=firstName==Alex")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].firstName", is("Alex")));
+
+    }
+
+    @Test
+    @DisplayName("GetClients: Should return all Clients")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void testGetClients() throws Exception {
+
         mockMvc.perform(get("/api/clients")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].firstName", is("Jessica")))
-                .andExpect(jsonPath("$[1].lastName", is("Price")));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].fullName").value("Jessica Cook"))
+                .andExpect(jsonPath("$.content[1].email", is("aprice@gmail.com")));
 
-        verify(clientService).getAllClients();
     }
 
     @Test
     @DisplayName("GetClientById: Should return a Client")
+    @WithMockUser(roles = { "ADMIN" })
     void testGetClientById() throws Exception {
         // Given
-        when(clientService.getClientById(1L)).thenReturn(clientDTO1);
 
         // When/Then
-        mockMvc.perform(get("/api/clients/1")
+        mockMvc.perform(get("/api/admin/clients/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.email", is("jessicacook@gmail.com")))
                 .andExpect(jsonPath("$.notes", is("Prefers eco-friendly materials")));
-
-        verify(clientService).getClientById(1L);
     }
 
     @Test
     @DisplayName("GetClientById: Client Not Found")
+    @WithMockUser(roles = { "ADMIN" })
     void testGetClientById_NotFound() throws Exception {
         // Given
-        when(clientService.getClientById(199L)).thenThrow(new ClientNotFoundException("clientId", 199L));
-
         // When/Then
-        mockMvc.perform(get("/api/clients/199")
+        mockMvc.perform(get("/api/admin/clients/199")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Client is not found with clientId: 199")));
 
-        verify(clientService).getClientById(199L);
     }
 
     @Test
     @DisplayName("CreateClient: Client is created")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testCreateClient() throws Exception {
+
         // Given
-        when(clientService.createClient(clientCreateDTO)).thenReturn(clientDTO1);
+        ClientCreateDTO client = new ClientCreateDTO();
+        client.setFirstName("Jessica");
+        client.setLastName("Cook");
+        client.setEmail("jessicacook@gmail.com");
+        client.setPhone("07314708068");
+        client.setAddress("33 Elm Street, London, N2R 652");
+        client.setNotes("Prefers eco-friendly materials");
+        client.setDesigner(designer);
 
         // When/Then
         mockMvc.perform(post("/api/clients")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(clientDTO1)))
+                .content(objectMapper.writeValueAsString(client)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(1)));
+                .andExpect(jsonPath("$.id", is(3)));
 
-        verify(clientService).createClient(clientCreateDTO);
     }
 
     @Test
     @DisplayName("CreateClient: Missing FirstName")
+    @WithMockUser(username = "sam", roles = { "DESIGNER" })
     void testCreateClient_ValidationFailure() throws Exception {
         // Given
-        clientCreateDTO2 = new ClientCreateDTO();
-        clientCreateDTO2.setLastName("Cook");
-        clientCreateDTO2.setEmail("jessicacook@gmail.com");
-        clientCreateDTO2.setPhone("07314708068");
-        clientCreateDTO2.setAddress("33 Elm Street, London, N2R 652");
-        clientCreateDTO2.setNotes("Prefers eco-friendly materials");
+        ClientCreateDTO client2 = new ClientCreateDTO();
+        client2.setLastName("Cook");
+        client2.setEmail("jessicacook@gmail.com");
+        client2.setPhone("07314708068");
+        client2.setAddress("33 Elm Street, London, N2R 652");
+        client2.setNotes("Prefers eco-friendly materials");
 
         // When/Then
         mockMvc.perform(post("/api/clients")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(clientCreateDTO2)))
+                .content(objectMapper.writeValueAsString(client2)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.firstName", is("First name is required")));
 
-        verify(clientService, never()).createClient(clientCreateDTO2);
     }
 
     @Test
     @DisplayName("UpdateClient: Client's firstName is updated")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testUpdateClient() throws Exception {
         // Given
-        Long id = clientDTO2.getId();
         clientUpdateDTO = new ClientUpdateDTO();
         clientUpdateDTO.setFirstName("Alexandra");
 
-        clientDTO2.setFirstName("Alexandra");
-
-        when(clientService.updateClient(id, clientUpdateDTO)).thenReturn(clientDTO2);
-
         // When/Then
-        mockMvc.perform(put("/api/clients/{id}", id)
+        mockMvc.perform(put("/api/clients/{id}", 2)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(clientUpdateDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName", is("Alexandra")));
 
-        verify(clientService).updateClient(id, clientUpdateDTO);
     }
 
     @Test
     @DisplayName("UpdateClient: Client not found")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testUpdateClient_NotFound() throws Exception {
         // Given
-        Long id = 6L;
+
         clientUpdateDTO = new ClientUpdateDTO();
-        when(clientService.updateClient(id, clientUpdateDTO)).thenThrow(new ClientNotFoundException("clientId", id));
+        clientUpdateDTO.setPhone("07339204531");
 
         // When/Then
-        mockMvc.perform(put("/api/clients/{id}", id)
+        mockMvc.perform(put("/api/clients/6")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(clientUpdateDTO)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Client is not found with clientId: 6")));
 
-        verify(clientService).updateClient(id, clientUpdateDTO);
     }
 
     @Test
     @DisplayName("DeleteClient: Client is deleted")
+    @WithMockUser(roles = { "ADMIN" })
     void testDeleteClient() throws Exception {
-        // Given
-        Long id = 2L;
-        doNothing().when(clientService).deleteClient(id);
 
         // When/Then
-        mockMvc.perform(delete("/api/clients/{id}", id)
+        mockMvc.perform(delete("/api/admin/clients/2")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        verify(clientService).deleteClient(id);
+    }
+
+    @Test
+    @DisplayName("ReassignDesigner: Client is deleted")
+    @WithMockUser(roles = { "ADMIN" })
+    void testReassignDesigner() throws Exception {
+
+        // When/Then
+        mockMvc.perform(delete("/api/admin/clients/2")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
     }
 
 }

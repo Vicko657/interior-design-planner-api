@@ -3,20 +3,24 @@ package com.interiordesignplanner.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.authentication.UserRepository;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerRepository;
 
 /**
  * Unit tests for {@link ClientRepository}.
@@ -27,105 +31,132 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * <p>
  * The tests use mocked repository behavior.
  */
-@ExtendWith(MockitoExtension.class)
+@DataJpaTest
+@ActiveProfiles("test")
 @DisplayName(value = "Client Repository Test Suite")
 public class ClientRepositoryTest {
 
     // Mock client repository
-    @Mock
-    public ClientRepository cRepository;
+    @Autowired
+    public ClientRepository clientRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private DesignerRepository designerRepository;
 
     public Client client1, client2, client3;
 
+    public Designer designer1, designer2;
+
+    public User user1, user2;
+
     @BeforeEach
     public void setUp() {
-        // Created mock client tests
+
+        clientRepository.deleteAll();
+        designerRepository.deleteAll();
+        userRepository.deleteAll();
+
+        user1 = new User();
+        user1.setFirstName("Dove");
+        user1.setLastName("White");
+        user1.setEmail("dovewhite@gmail.com");
+        user1.setMobileNumber("07223180736");
+        user1.setRoles(Roles.DESIGNER);
+        user1.setUsername("dovewhite");
+        user1.setPassword("gsjgtq893x");
+
+        user2 = new User();
+        user2.setFirstName("Sasha");
+        user2.setLastName("Walker");
+        user2.setEmail("sashawalker@gmail.com");
+        user2.setMobileNumber("07467652710");
+        user2.setRoles(Roles.DESIGNER);
+        user2.setUsername("sashawalker");
+        user2.setPassword("7dfe6320472n");
+
+        userRepository.saveAll(List.of(user1, user2));
+
+        designer1 = new Designer();
+        designer1.setUser(user1);
+        designer2 = new Designer();
+        designer2.setUser(user2);
+
+        designerRepository.saveAll(List.of(designer1, designer2));
+
         client1 = new Client();
-        client1.setId(1L);
         client1.setFirstName("Jessica");
         client1.setLastName("Cook");
         client1.setEmail("jessicacook@gmail.com");
         client1.setPhone("07314708068");
         client1.setAddress("33 Elm Street, London, N2R 652");
         client1.setNotes("Prefers eco-friendly materials");
+        client1.setDesigner(designer1);
 
         client2 = new Client();
-        client2.setId(2L);
         client2.setFirstName("Alex");
         client2.setLastName("Price");
         client2.setEmail("aprice@gmail.com");
         client2.setPhone("07828096962");
         client2.setAddress("249 The Grove, Reading, R84 J5N");
         client2.setNotes("Needs child-friendly furniture");
+        client2.setDesigner(designer1);
 
         client3 = new Client();
-        client3.setId(3L);
         client3.setFirstName("Simon");
         client3.setLastName("Harris");
         client3.setEmail("harrissimon@gmail.com");
         client3.setPhone("07855443322");
         client3.setAddress("89 Riverbank Road, Birmingham, B23 O92");
         client3.setNotes("Loves minimalist design");
-    }
+        client3.setDesigner(designer1);
 
-    /**
-     * Tests if the Client can be found with their lastname and different case
-     */
-    @Test
-    @DisplayName("FindByLastName: Finds client by lastname and ignorescase")
-    public void testfindByLastNameIgnoreCase_ReturnsSameClient() {
-
-        // Arrange: Prepare test clients mapped to last names in different cases
-        Map<String, Optional<Client>> test = new HashMap<>();
-        test.put("cook", Optional.of(client1));
-        test.put("PRICE", Optional.of(client2));
-        test.put("Harr", Optional.of(client3));
-
-        for (Map.Entry<String, Optional<Client>> entry : test.entrySet()) {
-
-            String lastName = entry.getKey();
-            Optional<Client> expectedClients = entry.getValue();
-
-            // Mock repository behavior
-            when(cRepository.findByLastNameIgnoreCase(lastName)).thenReturn(expectedClients);
-
-            // Act: Query repository with each last name
-            Optional<Client> result = cRepository.findByLastNameIgnoreCase(lastName);
-
-            // Assert: Verify results match expected clients, ignoring case
-            assertNotNull(result);
-            assertEquals(expectedClients.equals(test), result.isEmpty());
-            assertEquals(expectedClients, result);
-
-        }
+        clientRepository.saveAll(List.of(client1, client2, client3));
 
     }
 
     /**
-     * Tests when the Client isnt found by LastName and returns a empty set
+     * Tests if the Client can be found by their assigned designer's id
      */
     @Test
-    @DisplayName("FindByLastName: Client isnt found by lastname and ignorescase")
-    public void testfindByLastNameIgnoreCase_ReturnsEmptyList() {
+    @DisplayName("FindByDesigner: Finds client by Designer")
+    public void testfindByDesigner_ReturnsClients() {
 
-        // Arrange: Mock Repository to test a different if the client with last name
-        // ("Brown") is found
-        when(cRepository.findByLastNameIgnoreCase("Brown")).thenReturn(Optional.empty());
+        // Arrange: Prepare pageable with page size
+        Pageable pageable = PageRequest.of(0, 3);
 
-        // Act: Query the repository the lastname ("Brown")
-        Optional<Client> result = cRepository.findByLastNameIgnoreCase("Brown");
+        // Act: Query repository with designer's id
+        Page<ClientSummaryDTO> result = clientRepository.findClientsByDesignerId(designer1.getId(), pageable);
 
-        // Assert: result is not null, is empty and repository was called
+        // Assert: Verify results match expected clients
+        assertNotNull(result);
+        assertEquals(result.getSize(), 3);
+        assertEquals(result.getTotalPages(), 1);
+        assertEquals(result.getContent().get(0).getFullName(), "Jessica Cook");
+
+    }
+
+    /**
+     * Tests when the Client isnt found by Designer and returns a empty set
+     */
+    @Test
+    @DisplayName("FindByDesigner: Clients not found by designer")
+    public void testfindByDesignerReturnsEmptyList() {
+
+        // Arrange: Mock Repository to test if the clients with designer2Id are
+        // found
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Act: Query the repository with the designer2Id and pageable
+        Page<ClientSummaryDTO> result = clientRepository.findClientsByDesignerId(designer2.getId(), pageable);
+
+        // Assert: Verifies result's page is empty
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(cRepository).findByLastNameIgnoreCase("Brown");
 
-    }
-
-    // Reset all mock objects
-    @AfterEach
-    public void tearDown() {
-        Mockito.reset(cRepository);
     }
 
 }

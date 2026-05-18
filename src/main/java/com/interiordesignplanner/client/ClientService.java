@@ -1,13 +1,24 @@
 package com.interiordesignplanner.client;
 
-import java.util.List;
 import com.interiordesignplanner.mapper.ClientMapper;
-import com.interiordesignplanner.project.ProjectRepository;
+
+import io.github.perplexhub.rsql.RSQLJPASupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.authentication.UserRepository;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.exceptions.ClientNotFoundException;
+import com.interiordesignplanner.exceptions.UserNotFoundException;
 
 /**
  * Client service class provides business logic and operations relating to a
@@ -28,30 +39,68 @@ public class ClientService {
 
     // Client Mapper
     @Autowired
-    private final ClientMapper clientMapper;
+    private ClientMapper clientMapper;
 
-    // Project Interface
-    @Autowired
-    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
-    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper,
-            ProjectRepository projectRepository) {
+    private final DesignerRepository designerRepository;
+
+    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper, UserRepository userRepository,
+            DesignerRepository designerRepository) {
         this.clientRepository = clientRepository;
         this.clientMapper = clientMapper;
-        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.designerRepository = designerRepository;
     }
 
     /**
      * Returns all active clients and their details on the system.
+     * 
+     * *
+     * <p>
+     * The RSQL plugin automatically builds the JPA specification with
+     * less code and provides filtering support for power users.
+     * 
+     * Used the plugin recommended which saved time:
+     * {@link https://github.com/perplexhub/rsql-jpa-specification}
+     * </p>
+     * 
+     * @return all clients on the system
      */
-    public List<ClientDTO> getAllClients() {
-        return clientRepository.findAll().stream()
-                .map(client -> {
-                    ClientDTO clientDTO = clientMapper.toDto(client);
-                    clientDTO.setTotalProjects(projectRepository.countClientsProjects(client.getId()));
-                    return clientDTO;
-                })
-                .toList();
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<ClientDTO> getAllClients(String filter, Pageable pageable) {
+
+        Page<Client> clients;
+
+        if (filter != null) {
+            Specification<Client> specfication = RSQLJPASupport.toSpecification(filter);
+            clients = clientRepository.findAll(specfication, pageable);
+        } else {
+            clients = clientRepository.findAll(pageable);
+        }
+
+        return clients.map(client -> {
+            ClientDTO clientDTO = clientMapper.toDto(client);
+            return clientDTO;
+        });
+
+    }
+
+    /**
+     * Returns the designer's list of clients and their details on the system.
+     * 
+     * @param username retrieves the client object to be deleted
+     * @throws UsernameNotFoundException if the user is not found
+     * @throws DesignerNotFoundException if the designer is not found
+     * @return logged in designer's list of clients
+     */
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<ClientSummaryDTO> getClientsByDesigner(String username, Pageable pageable) {
+
+        User user = findUser(username);
+        Designer designer = findDesigner(user.getId());
+
+        return clientRepository.findClientsByDesignerId(designer.getId(), pageable);
     }
 
     /**
@@ -64,33 +113,14 @@ public class ClientService {
      * 
      * @param id client's unique identifier
      * @throws ClientNotFoundException if the client is not found
+     * @return client
      */
+    @PreAuthorize("hasRole('ADMIN')")
     public ClientDTO getClientById(Long id) {
 
         Client client = findClient(id);
         ClientDTO clientDTO = clientMapper.toDto(client);
-        clientDTO.setTotalProjects(projectRepository.countClientsProjects(id));
         return clientDTO;
-    }
-
-    /**
-     * Retrives a client using their lastname.
-     * 
-     * <p>
-     * Retrieves a specific client entity by
-     * their lastName. Custom query created in the repository.
-     * </p>
-     * 
-     * @param lastName client's lastname
-     * @throws ClientNotFoundException if the client is not found
-     */
-    public ClientDTO getClientsByLastName(String lastName) {
-
-        Client client = clientRepository.findByLastNameIgnoreCase(lastName)
-                .orElseThrow(() -> new ClientNotFoundException(
-                        "lastName", lastName));
-
-        return clientMapper.toDto(client);
     }
 
     /**
@@ -104,7 +134,14 @@ public class ClientService {
      * @param ClientCreateDTO the client object is created
      * @return client with a generated unique Id
      */
-    public ClientDTO createClient(ClientCreateDTO clientCreateDTO) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ClientDTO createClient(ClientCreateDTO clientCreateDTO, String username) {
+
+        // Finds the designer and assigns the user to the new client
+        User user = findUser(username);
+        Designer designer = findDesigner(user.getId());
+
+        clientCreateDTO.setDesigner(designer);
 
         Client client = clientMapper.toEntity(clientCreateDTO);
         Client savedClient = clientRepository.save(client);
@@ -123,9 +160,15 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return the updated client object
      */
-    public ClientDTO updateClient(Long id, ClientUpdateDTO clientUpdateDTO) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ClientDTO updateClient(Long id, ClientUpdateDTO clientUpdateDTO, String username) {
 
         Client existingClient = findClient(id);
+
+        if (existingClient.getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
         clientMapper.updateEntity(clientUpdateDTO, existingClient);
         return clientMapper.toDto(clientRepository.save(existingClient));
     }
@@ -142,9 +185,12 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return client is removed
      */
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteClient(Long id) {
+
         Client client = findClient(id);
         clientRepository.delete(client);
+
     }
 
     /**
@@ -159,6 +205,34 @@ public class ClientService {
     public Client findClient(Long id) {
         return clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException("clientId", id));
+    }
+
+    /**
+     * Retrieved the User's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the user object to be deleted
+     * @throws UserNotFoundException if the user is not found
+     * @return the user
+     */
+    public User findUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User is not found"));
+    }
+
+    /**
+     * Retrieved the Designer's entity
+     * 
+     * Reduces code repetition
+     * 
+     * @param id retrieves the user object to be deleted
+     * @throws UserNotFoundException if the user is not found
+     * @return the user
+     */
+    public Designer findDesigner(Long userId) {
+        return designerRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserNotFoundException("userId", userId));
     }
 
 }
