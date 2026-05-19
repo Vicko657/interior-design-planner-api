@@ -2,40 +2,38 @@ package com.interiordesignplanner.room;
 
 import com.interiordesignplanner.project.Project;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Schema(description = "Request body for creating a room")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class RoomCreateDTO {
 
-    // Project the room is assigned
+    @Schema(description = "Project", example = "1")
     private Project project;
 
-    // Project's room
+    @Schema(description = "Room type", example = "LIVING_ROOM")
     @NotNull(message = "Type is required")
     private RoomType type;
 
-    // Length of the room
+    @Schema(description = "Room length", example = "6.4")
     @NotNull(message = "Length is required")
     private Double length;
 
-    // Height of the room
+    @Schema(description = "Room height", example = "5.0")
     @NotNull(message = "Height is required")
     private Double height;
 
-    // Width of the room
+    @Schema(description = "Room width", example = "3.5")
     @NotNull(message = "Width is required")
     private Double width;
 
-    // Unit of dimensions
+    @Schema(description = "Unit of dimensions", example = "M")
     @NotNull(message = "Unit is required")
     private String unit;
 

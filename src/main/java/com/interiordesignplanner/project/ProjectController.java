@@ -33,6 +33,7 @@ import jakarta.validation.Valid;
  * 
  * API endpoints to complete CRUD operations.
  */
+@Tag(name = "Projects", description = "Client's project directory")
 @Validated
 @RestController
 @RequestMapping("/api")
@@ -48,8 +49,7 @@ public class ProjectController {
          * @return all projects entities on the system
          * @response 200 if all projects are found
          */
-        @Tag(name = "projects", description = "Client's Project directory")
-        @Operation(summary = "Retrieves all of the client's projects", description = "Retrieves all the project information, including the which clients project it is, name, the budget, project status, start date, deadline and meeting links")
+        @Operation(summary = "Retrieves all client's projects", description = "Retrieves all project information, including the which clients project it is, name, the budget, project status, start date, deadline and meeting links")
         @ApiResponse(responseCode = "200", description = "All projects are found")
         @ResponseStatus(HttpStatus.OK)
         @GetMapping(value = "/admin/projects", produces = "application/json")
@@ -65,7 +65,6 @@ public class ProjectController {
          * @return all project entities on the system
          * @response 200 if all projects are found
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Retrieves all projects", description = "Retrieves all the projects details, including their status, duedate, client and other details")
         @ApiResponse(responseCode = "200", description = "All projects are found")
         @ResponseStatus(HttpStatus.OK)
@@ -85,7 +84,6 @@ public class ProjectController {
          * @response 200 if project was successfully found
          * @response 404 Not found is the client doesnt exist
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Finds project by ID", description = "Returns one project, including their name, the budget, project status, start date, deadline and meeting links")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Project with id was found"),
@@ -108,7 +106,6 @@ public class ProjectController {
          * @response 201 if project was successfully created
          * @response 400 bad request is input data is invalid
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Adds a project to a client", description = "Creates a new project for the client")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Project was created"),
@@ -134,7 +131,6 @@ public class ProjectController {
          * @response 201 if project was successfully updated
          * @response 404 not found is the project doesn't exist
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Update project", description = "Updates the projects information")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Project with id was updated"),
@@ -160,7 +156,6 @@ public class ProjectController {
          * @response 200 if project is reassigned
          * @response 404 if projectId or ClientId is not found
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Reassigns project to a different client", description = "Updates to a different client for the project")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Project with id is reassigned"),
@@ -184,7 +179,6 @@ public class ProjectController {
          * @response 200 if all projects with the same status are returned
          * @response 404 if Status is not found
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Finds project by status", description = "Returns the projects that have the same status")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Project status is found"),
@@ -204,7 +198,6 @@ public class ProjectController {
          * @return all projects in a ascending order of due date
          * @response 200 if all project's are found
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Project deadlines", description = "Returns the projects in order of deadline")
         @ApiResponse(responseCode = "200", description = "All projects are found")
         @ResponseStatus(HttpStatus.OK)
@@ -222,7 +215,6 @@ public class ProjectController {
          * @response 204 if project was successfully deleted
          * @response 404 not found is the project doesn't exist
          */
-        @Tag(name = "projects", description = "Client's Project directory")
         @Operation(summary = "Deletes project", description = "Deletes the project and its information")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Project with id was deleted"),

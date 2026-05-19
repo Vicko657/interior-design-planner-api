@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import com.interiordesignplanner.client.Client;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
@@ -14,51 +15,48 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Schema(description = "Request body for creating a project")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class ProjectCreateDTO {
 
-    // Project Owner
+    @Schema(description = "Project Client", example = "8")
     private Client client;
 
-    // Project name
+    @Schema(description = "Project name", example = "Coastal Living Room")
     @NotBlank(message = "Project name is required")
     @Size(min = 5, max = 30, message = "Project name must be between 5 and 30 characters")
     private String projectName;
 
-    // Project status
+    @Schema(description = "Project status", example = "PLANNING")
     @NotNull(message = "Status is required")
     private ProjectStatus status;
 
-    // Project budget
+    @Schema(description = "Project budget", example = "5000.00")
     @NotNull(message = "Budget is required")
     @Digits(integer = 6, fraction = 2, message = "Budget must be a valid amount")
     @Min(value = 0, message = "Budget must not be negative")
     private BigDecimal budget;
 
-    // Project start date
+    @Schema(description = "Project start date", example = "2026-01-08")
     @NotNull(message = "Start date is required")
     @PastOrPresent(message = "Start date must be before due date")
     private LocalDate startDate;
 
-    // Project due date
+    @Schema(description = "Project due date", example = "2026-09-24")
     @NotNull(message = "Due date is required")
     @Future(message = "Due date must be after start date")
     private LocalDate dueDate;
 
-    // Project description
+    @Schema(description = "Project description", example = "Full redesign of living room with contemporary furniture and lighting")
     @NotBlank(message = "Description is required")
     @Size(min = 5, max = 200, message = "Description must be between 5 and 200 characters")
     private String description;
 
-    // Project meeting url
+    @Schema(description = "Meeting link", example = "https://zoom.us/k/12345627")
     private String meetingURL;
 
 }

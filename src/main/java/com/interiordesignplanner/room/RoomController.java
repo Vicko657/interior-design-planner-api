@@ -33,6 +33,7 @@ import jakarta.validation.Valid;
  * 
  * API endpoints to complete CRUD operations.
  */
+@Tag(name = "Rooms", description = "Project's room specification")
 @Validated
 @RestController
 @RequestMapping("/api")
@@ -50,7 +51,6 @@ public class RoomController {
          * @response 200 if room was successfully found
          * @response 404 Not found is the room doesnt exist
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Finds room by ID", description = "Returns one room, including their roomType, roomSize, checkList of tasks, changes to the room")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Room with id was found"),
@@ -70,7 +70,6 @@ public class RoomController {
          * @return all room entities on the system
          * @response 200 if all rooms are found
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Retrieves all of the rooms", description = "Returns all the room specification, including the client and project it is linked to, roomType, roomSize, checkList of tasks, changes to the room")
         @ApiResponse(responseCode = "200", description = "All rooms are found")
         @ResponseStatus(HttpStatus.OK)
@@ -90,7 +89,6 @@ public class RoomController {
          * @response 201 if the room was successfully created
          * @response 404 bad request is input data is invalid
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Adds a room to the project", description = "Creates a room with specifications for the project")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Room was created"),
@@ -115,7 +113,6 @@ public class RoomController {
          * @response 201 if room was successfully updated
          * @response 404 not found is the room doesn't exist
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Updates room", description = "Updates the room's specification")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Room with id was updated"),
@@ -141,7 +138,6 @@ public class RoomController {
          * @response 200 if room is reassigned to a project
          * @response 404 if projectId or roomId is not found
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Reassigns room to a different project", description = "Updates to a different project for the room")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Room with id is reassigned"),
@@ -165,7 +161,6 @@ public class RoomController {
          * @response 200 if all room's with the same type are returned
          * @response 404 if room type is not found
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Finds room by type", description = "Returns the same type of rooms")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Room type is found"),
@@ -189,7 +184,6 @@ public class RoomController {
          * @response 204 if room was successfully deleted
          * @response 404 not found is the room doesn't exist
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Deletes room", description = "Deletes the room and its specifications")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Room with id was deleted"),
@@ -213,7 +207,6 @@ public class RoomController {
          * @response 201 if the room was successfully created
          * @response 404 bad request is input data is invalid
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Adds task", description = "Adds a new task to the room's checklist")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Task was added"),
@@ -239,7 +232,6 @@ public class RoomController {
          * @response 200 if the room was successfully updated
          * @response 404 bad request is input data is invalid
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Edit task", description = "Edit task to the room's checklist")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Task was added"),
@@ -265,7 +257,6 @@ public class RoomController {
          * @response 204 if task was successfully deleted
          * @response 404 not found is the room doesn't exist
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Deletes task", description = "Deletes specific task for room and its details")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Task with id was deleted"),
@@ -289,7 +280,6 @@ public class RoomController {
          * @response 200 if the room was successfully created
          * @response 404 bad request is input data is invalid
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Adds item", description = "Adds a new item to the room's inventory")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Item was added"),
@@ -315,7 +305,6 @@ public class RoomController {
          * @response 200 if the room was successfully updated
          * @response 404 bad request is input data is invalid
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Edit item", description = "Edit item from inventory")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Task was added"),
@@ -341,7 +330,6 @@ public class RoomController {
          * @response 204 if task was successfully deleted
          * @response 404 not found is the room doesn't exist
          */
-        @Tag(name = "rooms", description = "Project's Room specification")
         @Operation(summary = "Deletes item", description = "Deletes specific item from inventory")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Item with id was deleted"),

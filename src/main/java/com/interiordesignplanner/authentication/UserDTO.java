@@ -1,42 +1,40 @@
 package com.interiordesignplanner.authentication;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Getter
-@Setter
+@Schema(description = "Response body for a user")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class UserDTO {
 
-    // User's id
+    @Schema(description = "User id", example = "43")
     private Long id;
 
-    // User's firstname
+    @Schema(description = "User first name", example = "Sophie")
     private String firstName;
 
-    // User's lastname
+    @Schema(description = "User last name", example = "Thompson")
     private String lastName;
 
-    // User's email address
+    @Schema(description = "User email address", example = "sophie.thompson@gmail.com")
     private String email;
 
-    // User's mobile number
+    @Schema(description = "User mobile number", example = "07554362738")
     private String mobileNumber;
 
-    // User's username
+    @Schema(description = "User username", example = "sophiethompson")
     private String username;
 
-    // User's password
+    @Schema(description = "User password", example = "xds6fs46yG7x9s")
     private String password;
 
-    // User's role
+    @Schema(description = "User role", example = "DESIGNER")
     @Enumerated(EnumType.STRING)
     private Roles roles;
 }

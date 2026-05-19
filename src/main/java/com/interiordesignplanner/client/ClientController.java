@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  * 
  * API endpoints to complete CRUD operations.
  */
+@Tag(name = "Clients", description = "Information about the clients")
 @Validated
 @RestController
 @RequestMapping("/api")
@@ -48,7 +49,6 @@ public class ClientController {
      * @return all clients entities on the system
      * @response 200 if all clients are found
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Retrieves all clients", description = "Retrieves all the clients details, including their name, email, phoneNo, address, projects and other details")
     @ApiResponse(responseCode = "200", description = "All clients are found")
     @ResponseStatus(HttpStatus.OK)
@@ -66,7 +66,6 @@ public class ClientController {
      * @return all clients entities on the system
      * @response 200 if all clients are found
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Retrieves all clients", description = "Retrieves all the clients details, including their name, email, phoneNo, address, projects and other details")
     @ApiResponse(responseCode = "200", description = "All clients are found")
     @ResponseStatus(HttpStatus.OK)
@@ -85,7 +84,6 @@ public class ClientController {
      * @response 200 if client was successfully found
      * @response 404 not found is the client doesnt exist
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Finds client by ID", description = "Returns one clients details, including their name, email, phoneNo, address, projects and other details")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was found"),
@@ -106,7 +104,6 @@ public class ClientController {
      * @response 201 if client was successfully created
      * @response 404 bad request is input data is invalid
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Create a new client", description = "Creates a new client and add's their details")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Client was created"),
@@ -130,7 +127,6 @@ public class ClientController {
      * @response 200 if client was successfully updated
      * @response 404 not found is the client doesnt exist
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Update client", description = "Updates the client's records")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was updated"),
@@ -154,7 +150,6 @@ public class ClientController {
      * @response 204 if client was successfully deleted
      * @response 404 Not found is the client doesnt exist
      */
-    @Tag(name = "clients", description = "Information about the clients")
     @Operation(summary = "Deletes client", description = "Deletes the client's records")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Client with id was deleted"),
