@@ -23,10 +23,10 @@ public class UserDTO {
     private String lastName;
 
     @Schema(description = "User email address", example = "sophie.thompson@gmail.com")
-    private String email;
+    private String emailAdress;
 
     @Schema(description = "User mobile number", example = "07554362738")
-    private String mobileNumber;
+    private String phoneNumber;
 
     @Schema(description = "User username", example = "sophiethompson")
     private String username;

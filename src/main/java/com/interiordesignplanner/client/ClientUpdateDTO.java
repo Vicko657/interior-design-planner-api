@@ -24,11 +24,11 @@ public class ClientUpdateDTO {
 
     @Schema(description = "Client email address", example = "tomjackson@gmail.com")
     @Email(message = "Invaild email address")
-    private String email;
+    private String emailAddress;
 
-    @Schema(description = "Client mobile number", example = "07332436482")
-    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 11 digits")
-    private String phone;
+    @Schema(description = "Client phone number", example = "07332436482")
+    @Pattern(regexp = "^\\d{11}$", message = "Phone number must be 11 digits")
+    private String phoneNumber;
 
     @Schema(description = "Client address", example = "4 Darent road, London, W5 YBS")
     private String address;

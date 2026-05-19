@@ -117,21 +117,21 @@ public class AuthenticationService {
     @Transactional
     public void registerDesigner(UserCreateDTO userCreateDTO) {
 
-        // Checking if the user already exists - using email and mobile number
-        String email = userCreateDTO.getEmail();
-        String mobileNumber = userCreateDTO.getMobileNumber();
+        // Checking if the user already exists - using email address and phone number
+        String emailAddress = userCreateDTO.getEmailAddress();
+        String phoneNumber = userCreateDTO.getPhoneNumber();
 
-        Optional<User> existingUser = userRepository.findByEmailOrMobileNumber(email, mobileNumber);
+        Optional<User> existingUser = userRepository.findByEmailAddressOrPhoneNumber(emailAddress, phoneNumber);
 
         if (existingUser.isPresent()) {
 
             User user = existingUser.get();
 
-            if (user.getMobileNumber().equalsIgnoreCase(mobileNumber)) {
-                throw new UserExistsException("mobile", userCreateDTO.getMobileNumber());
+            if (user.getPhoneNumber().equalsIgnoreCase(phoneNumber)) {
+                throw new UserExistsException("mobile", userCreateDTO.getPhoneNumber());
 
-            } else if (user.getEmail().equalsIgnoreCase(email)) {
-                throw new UserExistsException("email", userCreateDTO.getEmail());
+            } else if (user.getEmailAddress().equalsIgnoreCase(emailAddress)) {
+                throw new UserExistsException("email", userCreateDTO.getEmailAddress());
             }
 
         }

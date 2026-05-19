@@ -104,8 +104,8 @@ public class AuthenticationServiceTest {
         userCreateDTO = new UserCreateDTO();
         userCreateDTO.setFirstName("Sam");
         userCreateDTO.setLastName("Williams");
-        userCreateDTO.setEmail("samwilliams@gmail.com");
-        userCreateDTO.setMobileNumber("07348294736");
+        userCreateDTO.setEmailAddress("samwilliams@gmail.com");
+        userCreateDTO.setPhoneNumber("07348294736");
         userCreateDTO.setRoles(Roles.DESIGNER);
         userCreateDTO.setUsername("samx823");
         userCreateDTO.setPassword("huwa71egyw");
@@ -114,8 +114,8 @@ public class AuthenticationServiceTest {
         user1.setId(1L);
         user1.setFirstName("Sam");
         user1.setLastName("Williams");
-        user1.setEmail("samwilliams@gmail.com");
-        user1.setMobileNumber("07348294736");
+        user1.setEmailAddress("samwilliams@gmail.com");
+        user1.setPhoneNumber("07348294736");
         user1.setRoles(Roles.DESIGNER);
         user1.setUsername("samx823");
         user1.setPassword("huwa71egyw");

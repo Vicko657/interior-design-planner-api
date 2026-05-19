@@ -122,8 +122,8 @@ public class RoomServiceTest {
         user.setId(1L);
         user.setFirstName("Sam");
         user.setLastName("Williams");
-        user.setEmail("samwilliams@gmail.com");
-        user.setMobileNumber("07348294736");
+        user.setEmailAddress("samwilliams@gmail.com");
+        user.setPhoneNumber("07348294736");
         user.setRoles(Roles.DESIGNER);
         user.setUsername("sam");
         user.setPassword(passwordEncoder.encode("huwa71egyw"));
@@ -132,8 +132,8 @@ public class RoomServiceTest {
         admin.setId(2L);
         admin.setFirstName("Grace");
         admin.setLastName("Smith");
-        admin.setEmail("gracesmith@gmail.com");
-        admin.setMobileNumber("07392648274");
+        admin.setEmailAddress("gracesmith@gmail.com");
+        admin.setPhoneNumber("07392648274");
         admin.setRoles(Roles.ADMIN);
         admin.setUsername("grace");
         admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
@@ -147,8 +147,8 @@ public class RoomServiceTest {
         client1.setId(1L);
         client1.setFirstName("Jessica");
         client1.setLastName("Cook");
-        client1.setEmail("jessicacook@gmail.com");
-        client1.setPhone("07314708068");
+        client1.setEmailAddress("jessicacook@gmail.com");
+        client1.setPhoneNumber("07314708068");
         client1.setAddress("33 Elm Street, London, N2R 652");
         client1.setNotes("Prefers eco-friendly materials");
         client1.setDesigner(designer);

@@ -26,10 +26,10 @@ public class User extends AbstractEntity {
     private String lastName;
 
     // User's email address
-    private String email;
+    private String emailAddress;
 
-    // User's mobile number
-    private String mobileNumber;
+    // User's phone number
+    private String phoneNumber;
 
     // User's username
     private String username;

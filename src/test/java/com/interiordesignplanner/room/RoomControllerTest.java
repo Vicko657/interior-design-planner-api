@@ -92,8 +92,8 @@ public class RoomControllerTest {
                 User user = new User();
                 user.setFirstName("Sam");
                 user.setLastName("Williams");
-                user.setEmail("samwilliams@gmail.com");
-                user.setMobileNumber("07348294736");
+                user.setEmailAddress("samwilliams@gmail.com");
+                user.setPhoneNumber("07348294736");
                 user.setRoles(Roles.DESIGNER);
                 user.setUsername("sam");
                 user.setPassword(passwordEncoder.encode("huwa71egyw"));
@@ -102,8 +102,8 @@ public class RoomControllerTest {
                 User admin = new User();
                 admin.setFirstName("Grace");
                 admin.setLastName("Smith");
-                admin.setEmail("gracesmith@gmail.com");
-                admin.setMobileNumber("07392648274");
+                admin.setEmailAddress("gracesmith@gmail.com");
+                admin.setPhoneNumber("07392648274");
                 admin.setRoles(Roles.ADMIN);
                 admin.setUsername("grace");
                 admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
@@ -116,8 +116,8 @@ public class RoomControllerTest {
                 Client client1 = new Client();
                 client1.setFirstName("John");
                 client1.setLastName("Moss");
-                client1.setEmail("johnmoss@gmail.com");
-                client1.setPhone("07894832061");
+                client1.setEmailAddress("johnmoss@gmail.com");
+                client1.setPhoneNumber("07894832061");
                 client1.setAddress("4B Avenue, Reading, R6 6E3");
                 client1.setNotes("Prefers eco-friendly materials");
                 client1.setDesigner(designer);

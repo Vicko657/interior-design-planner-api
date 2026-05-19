@@ -67,8 +67,8 @@ public class ClientControllerTest {
         User user = new User();
         user.setFirstName("Sam");
         user.setLastName("Williams");
-        user.setEmail("samwilliams@gmail.com");
-        user.setMobileNumber("07348294736");
+        user.setEmailAddress("samwilliams@gmail.com");
+        user.setPhoneNumber("07348294736");
         user.setRoles(Roles.DESIGNER);
         user.setUsername("sam");
         user.setPassword(passwordEncoder.encode("huwa71egyw"));
@@ -77,8 +77,8 @@ public class ClientControllerTest {
         User admin = new User();
         admin.setFirstName("Grace");
         admin.setLastName("Smith");
-        admin.setEmail("gracesmith@gmail.com");
-        admin.setMobileNumber("07392648274");
+        admin.setEmailAddress("gracesmith@gmail.com");
+        admin.setPhoneNumber("07392648274");
         admin.setRoles(Roles.ADMIN);
         admin.setUsername("grace");
         admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
@@ -91,8 +91,8 @@ public class ClientControllerTest {
         Client client1 = new Client();
         client1.setFirstName("Jessica");
         client1.setLastName("Cook");
-        client1.setEmail("jessicacook@gmail.com");
-        client1.setPhone("07314708068");
+        client1.setEmailAddress("jessicacook@gmail.com");
+        client1.setPhoneNumber("07314708068");
         client1.setAddress("33 Elm Street, London, N2R 652");
         client1.setNotes("Prefers eco-friendly materials");
         client1.setDesigner(designer);
@@ -101,8 +101,8 @@ public class ClientControllerTest {
         Client client2 = new Client();
         client2.setFirstName("Alex");
         client2.setLastName("Price");
-        client2.setEmail("aprice@gmail.com");
-        client2.setPhone("07828096962");
+        client2.setEmailAddress("aprice@gmail.com");
+        client2.setPhoneNumber("07828096962");
         client2.setAddress("249 The Grove, Reading, R84 J5N");
         client2.setNotes("Needs child-friendly furniture");
         client2.setDesigner(designer);
@@ -114,8 +114,8 @@ public class ClientControllerTest {
         clientDTO1.setId(1L);
         clientDTO1.setFirstName("Jessica");
         clientDTO1.setLastName("Cook");
-        clientDTO1.setEmail("jessicacook@gmail.com");
-        clientDTO1.setPhone("07314708068");
+        clientDTO1.setEmailAddress("jessicacook@gmail.com");
+        clientDTO1.setPhoneNumber("07314708068");
         clientDTO1.setAddress("33 Elm Street, London, N2R 652");
         clientDTO1.setNotes("Prefers eco-friendly materials");
 
@@ -123,8 +123,8 @@ public class ClientControllerTest {
         clientDTO2.setId(2L);
         clientDTO2.setFirstName("Alex");
         clientDTO2.setLastName("Price");
-        clientDTO2.setEmail("aprice@gmail.com");
-        clientDTO2.setPhone("07828096962");
+        clientDTO2.setEmailAddress("aprice@gmail.com");
+        clientDTO2.setPhoneNumber("07828096962");
         clientDTO2.setAddress("249 The Grove, Reading, R84 J5N");
         clientDTO2.setNotes("Needs child-friendly furniture");
 
@@ -208,8 +208,8 @@ public class ClientControllerTest {
         ClientCreateDTO client = new ClientCreateDTO();
         client.setFirstName("Jessica");
         client.setLastName("Cook");
-        client.setEmail("jessicacook@gmail.com");
-        client.setPhone("07314708068");
+        client.setEmailAddress("jessicacook@gmail.com");
+        client.setPhoneNumber("07314708068");
         client.setAddress("33 Elm Street, London, N2R 652");
         client.setNotes("Prefers eco-friendly materials");
         client.setDesigner(designer);
@@ -230,8 +230,8 @@ public class ClientControllerTest {
         // Given
         ClientCreateDTO client2 = new ClientCreateDTO();
         client2.setLastName("Cook");
-        client2.setEmail("jessicacook@gmail.com");
-        client2.setPhone("07314708068");
+        client2.setEmailAddress("jessicacook@gmail.com");
+        client2.setPhoneNumber("07314708068");
         client2.setAddress("33 Elm Street, London, N2R 652");
         client2.setNotes("Prefers eco-friendly materials");
 
@@ -268,7 +268,7 @@ public class ClientControllerTest {
         // Given
 
         clientUpdateDTO = new ClientUpdateDTO();
-        clientUpdateDTO.setPhone("07339204531");
+        clientUpdateDTO.setPhoneNumber("07339204531");
 
         // When/Then
         mockMvc.perform(put("/api/clients/6")

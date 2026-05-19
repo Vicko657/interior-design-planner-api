@@ -30,12 +30,12 @@ public class ClientCreateDTO {
     @Schema(description = "Client email address", example = "tomjackson@gmail.com")
     @NotBlank(message = "Email is required")
     @Email(message = "Invaild email address")
-    private String email;
+    private String emailAddress;
 
-    @Schema(description = "Client mobile number", example = "07332436482")
-    @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 11 digits")
-    private String phone;
+    @Schema(description = "Client phone number", example = "07332436482")
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^\\d{11}$", message = "Phone number must be 11 digits")
+    private String phoneNumber;
 
     @Schema(description = "Client address", example = "4 Darent road, London, W5 YBS")
     @NotBlank(message = "Address is required")

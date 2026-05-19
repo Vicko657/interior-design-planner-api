@@ -21,10 +21,10 @@ public class ClientDTO {
     private String lastName;
 
     @Schema(description = "Client email address", example = "tomjackson@gmail.com")
-    private String email;
+    private String emailAddress;
 
-    @Schema(description = "Client mobile number", example = "07332436482")
-    private String phone;
+    @Schema(description = "Client phone number", example = "07332436482")
+    private String phoneNumber;
 
     @Schema(description = "Client address", example = "4 Darent road, London, W5 YBS")
     private String address;

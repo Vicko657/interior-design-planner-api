@@ -23,6 +23,6 @@ public interface ClientRepository extends JpaRepository<Client, Long>, JpaSpecif
      * @param pageable pagination info
      * @return paginated list of clients
      */
-    @Query("SELECT new com.interiordesignplanner.client.ClientSummaryDTO(c.id, CONCAT(c.firstName,' ', c.lastName), c.email, c.phone, c.address, COUNT(p), c.notes) FROM Client c LEFT JOIN c.projects p LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY c.id")
+    @Query("SELECT new com.interiordesignplanner.client.ClientSummaryDTO(c.id, CONCAT(c.firstName,' ', c.lastName), c.emailAddress, c.phoneNumber, c.address, COUNT(p), c.notes) FROM Client c LEFT JOIN c.projects p LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY c.id")
     Page<ClientSummaryDTO> findClientsByDesignerId(@Param("userId") Long userId, Pageable pageable);
 }

@@ -42,10 +42,10 @@ public class Client extends AbstractEntity {
     private String lastName;
 
     // Client's email address
-    private String email;
+    private String emailAddress;
 
     // Client's phone number
-    private String phone;
+    private String phoneNumber;
 
     // Client's full address including streetname, city and postcode
     private String address;

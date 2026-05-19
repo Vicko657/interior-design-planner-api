@@ -88,8 +88,8 @@ public class RoomRepositoryTest {
         user1 = new User();
         user1.setFirstName("Dove");
         user1.setLastName("White");
-        user1.setEmail("dovewhite@gmail.com");
-        user1.setMobileNumber("07223180736");
+        user1.setEmailAddress("dovewhite@gmail.com");
+        user1.setPhoneNumber("07223180736");
         user1.setRoles(Roles.DESIGNER);
         user1.setUsername("dovewhite");
         user1.setPassword("gsjgtq893x");
@@ -97,8 +97,8 @@ public class RoomRepositoryTest {
         user2 = new User();
         user2.setFirstName("Sasha");
         user2.setLastName("Walker");
-        user2.setEmail("sashawalker@gmail.com");
-        user2.setMobileNumber("07467652710");
+        user2.setEmailAddress("sashawalker@gmail.com");
+        user2.setPhoneNumber("07467652710");
         user2.setRoles(Roles.DESIGNER);
         user2.setUsername("sashawalker");
         user2.setPassword("7dfe6320472n");
@@ -115,8 +115,8 @@ public class RoomRepositoryTest {
         client2 = new Client();
         client2.setFirstName("Alex");
         client2.setLastName("Price");
-        client2.setEmail("aprice@gmail.com");
-        client2.setPhone("07828096962");
+        client2.setEmailAddress("aprice@gmail.com");
+        client2.setPhoneNumber("07828096962");
         client2.setAddress("249 The Grove, Reading, R84 J5N");
         client2.setNotes("Needs child-friendly furniture");
         client2.setDesigner(designer1);

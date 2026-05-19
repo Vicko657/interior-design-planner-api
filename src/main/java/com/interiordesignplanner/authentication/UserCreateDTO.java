@@ -28,18 +28,18 @@ public class UserCreateDTO {
     private String lastName;
 
     @Schema(description = "User email address", example = "sophie.thompson@gmail.com")
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "Email address is required")
     @Email(message = "Invaild email address")
-    private String email;
+    private String emailAddress;
 
-    @Schema(description = "User mobile number", example = "07554362738")
-    @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^\\d{11}$", message = "Mobile number must be 11 digits")
-    private String mobileNumber;
+    @Schema(description = "User phone number", example = "07554362738")
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^\\d{11}$", message = "Phone number must be 11 digits")
+    private String phoneNumber;
 
     @Schema(description = "User username", example = "sophiethompson")
     @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 15, message = "Last name must be between 3 and 15 characters")
+    @Size(min = 3, max = 15, message = "Username must be between 3 and 15 characters")
     private String username;
 
     @Schema(description = "User password", example = "xds6fs46yG7x9s")
