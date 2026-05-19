@@ -1,7 +1,10 @@
 package com.interiordesignplanner.room;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +13,8 @@ import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
+
+import io.github.perplexhub.rsql.RSQLJPASupport;
 
 /**
  * Manages business logic related to rooms within a project.
@@ -45,12 +50,22 @@ public class RoomService {
     /**
      * Returns all rooms created for projects on the system.
      */
-    public List<RoomDTO> getAllRooms() {
-        return roomRepository.findAll().stream()
-                .map(room -> {
-                    RoomDTO roomDTO = roomMapper.toDto(room);
-                    return roomDTO;
-                }).toList();
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<RoomDTO> getAllRooms(String filter, Pageable pageable) {
+
+        Page<Room> rooms;
+
+        if (filter != null) {
+            Specification<Room> specfication = RSQLJPASupport.toSpecification(filter);
+            rooms = roomRepository.findAll(specfication, pageable);
+        } else {
+            rooms = roomRepository.findAll(pageable);
+        }
+
+        return rooms.map(room -> {
+            RoomDTO roomDTO = roomMapper.toDto(room);
+            return roomDTO;
+        });
     }
 
     /**
@@ -67,18 +82,19 @@ public class RoomService {
      * @returns rooms with same type
      * @throws RoomNotFoundException if the room type is not found
      */
-    public List<RoomDTO> getRoomsByType(RoomType type) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<RoomDTO> getRoomsByType(RoomType type, Pageable pageable, String username) {
 
         if (type == null) {
             throw new RoomNotFoundException("type", type);
         }
 
         return roomRepository.findRoomsByType(
-                type).stream()
+                type, pageable)
                 .map(room -> {
                     RoomDTO roomDTO = roomMapper.toDto(room);
                     return roomDTO;
-                }).toList();
+                });
 
     }
 
@@ -90,9 +106,10 @@ public class RoomService {
      * or design changes.
      * </p>
      * 
-     * @param id project's unique identifier
+     * @param id room's unique identifier
      * @throws RoomNotFoundException if the room is not found
      */
+    @PreAuthorize("hasRole('ADMIN')")
     public RoomDTO getRoomById(Long id) {
 
         Room room = findRoom(id);
@@ -116,13 +133,19 @@ public class RoomService {
      * @return room with a generated unique Id
      */
     @Transactional
-    public RoomDTO addRoom(RoomCreateDTO roomCreateDTO, Long projectId) throws IllegalArgumentException {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO addRoom(RoomCreateDTO roomCreateDTO, Long projectId,
+            String username) {
 
         if (roomCreateDTO == null && projectId == null) {
             throw new IllegalArgumentException("Room must not be null");
         }
 
         Project project = projectService.findProject(projectId);
+
+        if (project.getClient().getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
         roomCreateDTO.setProject(project);
         Room room = roomMapper.toEntity(roomCreateDTO);
         project.setRoom(room);
@@ -144,9 +167,11 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return updates room
      */
-    public RoomDTO updateRoom(Long id, RoomUpdateDTO roomUpdateDTO) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO updateRoom(Long id, RoomUpdateDTO roomUpdateDTO, String username) {
 
         Room existingRoom = findRoom(id);
+        findRoomByDesigner(existingRoom, username);
         roomMapper.updateEntity(roomUpdateDTO, existingRoom);
         return roomMapper.toDto(roomRepository.save(existingRoom));
     }
@@ -165,9 +190,11 @@ public class RoomService {
      * @return deletes room details
      * @throws RoomNotFoundException if the room doesnt exist
      */
-    public void deleteRoom(Long id) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public void deleteRoom(Long id, String username) {
 
         Room room = findRoom(id);
+        findRoomByDesigner(room, username);
         roomRepository.delete(room);
 
     }
@@ -188,10 +215,13 @@ public class RoomService {
      * @throws ProjectNotFoundException if the project doesn't exist
      * @return room is reassigned
      */
-    public RoomDTO reassignProject(Long projectId, Long roomId) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO reassignProject(Long projectId, Long roomId, String username) {
 
         Room existingRoom = findRoom(roomId);
         Project project = projectService.findProject(projectId);
+
+        findRoomByDesigner(existingRoom, username);
 
         if (existingRoom == null || project == null) {
             throw new RoomNotFoundException("roomId", roomId);
@@ -213,9 +243,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
-    public RoomDTO addTask(Long roomId, Task task) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO addTask(Long roomId, Task task, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         task.setCompleted(false);
 
@@ -235,9 +268,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated task is added to the checklist
      */
-    public RoomDTO editTask(Long roomId, Task updateTask, int index) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO editTask(Long roomId, Task updateTask, int index, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         existingRoom.getChecklist().set(index, updateTask);
 
@@ -254,9 +290,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
-    public void deleteTask(Long roomId, int index) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public void deleteTask(Long roomId, int index, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         existingRoom.getChecklist().remove(index);
 
@@ -273,9 +312,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room, with a new item on the list
      */
-    public RoomDTO addItem(Long roomId, Item item) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO addItem(Long roomId, Item item, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         item.setOrdered(false);
 
@@ -296,9 +338,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated item is added to the inventory
      */
-    public RoomDTO editItem(Long roomId, Item updateItem, int index) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public RoomDTO editItem(Long roomId, Item updateItem, int index, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         existingRoom.getInventory().set(index, updateItem);
 
@@ -315,9 +360,12 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
-    public void deleteItem(Long roomId, int index) {
+    @PreAuthorize("hasRole('DESIGNER')")
+    public void deleteItem(Long roomId, int index, String username) {
 
         Room existingRoom = findRoom(roomId);
+
+        findRoomByDesigner(existingRoom, username);
 
         existingRoom.getInventory().remove(index);
 
@@ -336,6 +384,16 @@ public class RoomService {
     public Room findRoom(Long id) {
         return roomRepository.findById(id)
                 .orElseThrow(() -> new RoomNotFoundException("roomId", id));
+    }
+
+    public void findRoomByDesigner(Room existingRoom, String username) {
+
+        Project existingProject = projectService.findProject(existingRoom.getProject().getId());
+
+        if (existingProject.getClient().getDesigner().getUser().getUsername() != username) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
     }
 
 }

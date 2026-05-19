@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,14 +23,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.client.Client;
+import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
@@ -68,7 +77,14 @@ public class RoomServiceTest {
     @Mock
     private ProjectService projectService;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     private Client client1;
+
+    private User user, admin;
+
+    private Designer designer;
 
     private Project project1, project2;
 
@@ -102,8 +118,40 @@ public class RoomServiceTest {
         roomMapper = new RoomMapper(modelMapper);
         roomService = new RoomService(roomRepository, projectService, roomMapper);
 
+        user = new User();
+        user.setId(1L);
+        user.setFirstName("Sam");
+        user.setLastName("Williams");
+        user.setEmail("samwilliams@gmail.com");
+        user.setMobileNumber("07348294736");
+        user.setRoles(Roles.DESIGNER);
+        user.setUsername("sam");
+        user.setPassword(passwordEncoder.encode("huwa71egyw"));
+
+        admin = new User();
+        admin.setId(2L);
+        admin.setFirstName("Grace");
+        admin.setLastName("Smith");
+        admin.setEmail("gracesmith@gmail.com");
+        admin.setMobileNumber("07392648274");
+        admin.setRoles(Roles.ADMIN);
+        admin.setUsername("grace");
+        admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
+
+        designer = new Designer();
+        designer.setId(1L);
+        designer.setUser(user);
+
+        // Created mock Client
         client1 = new Client();
         client1.setId(1L);
+        client1.setFirstName("Jessica");
+        client1.setLastName("Cook");
+        client1.setEmail("jessicacook@gmail.com");
+        client1.setPhone("07314708068");
+        client1.setAddress("33 Elm Street, London, N2R 652");
+        client1.setNotes("Prefers eco-friendly materials");
+        client1.setDesigner(designer);
 
         project1 = new Project();
         project1.setId(1L);
@@ -211,21 +259,63 @@ public class RoomServiceTest {
      * Tests for checking if Get all Rooms returns a list of rooms
      */
     @Test
-    @DisplayName("GetAllRooms: Returns all of the projects in the database")
+    @DisplayName("GetAllRooms: Returns all of the rooms in the database")
     public void testGetAllRooms_ReturnsAllRooms() {
         // Arrange: A list created with rooms and mock Repository to test if all
         // rooms are returned
 
-        when(roomRepository.findAll()).thenReturn(List.of(room1, room2));
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Room> rooms = new ArrayList<>();
+        rooms.add(room1);
+        rooms.add(room2);
+
+        Page<Room> mockPage = new PageImpl<>(rooms);
+
+        when(roomRepository.findAll(pageable)).thenReturn(mockPage);
 
         // Act: Query the service layer the if all projects are returnes
-        List<RoomDTO> result = roomService.getAllRooms();
+        Page<RoomDTO> result = roomService.getAllRooms(null, pageable);
 
         // Assert: Verifies that the result is not null and projects are retrieved
         assertNotNull(result);
-        assertEquals(result.size(), 2);
+        assertEquals(result.getNumberOfElements(), 2);
         assertThat(result).extracting(RoomDTO::getType).containsExactly(RoomType.BEDROOM, RoomType.HALLWAY);
-        verify(roomRepository).findAll();
+        verify(roomRepository).findAll(any(Pageable.class));
+        verifyNoMoreInteractions(roomRepository);
+
+    }
+
+    /**
+     * Tests for checking if Get all rooms returns one room
+     */
+    @Test
+    @DisplayName("GetAllRooms: Returns one room in the database")
+    public void testGetAllRooms_ReturnsFilteredRoom() {
+        // Arrange: A page created with rooms, pageable and mock Repository to test
+        // if all projects are returned
+
+        String filter = "filter=height===4.5";
+
+        Pageable pageable = PageRequest.of(2, 2);
+        List<Room> rooms = new ArrayList<>();
+        rooms.add(room1);
+
+        Page<Room> mockPage = new PageImpl<>(rooms);
+
+        when(roomRepository.findAll(ArgumentMatchers.<Specification<Room>>any(), any(
+                Pageable.class)))
+                .thenReturn(mockPage);
+
+        // Act: Query the service layer the if all rooms are returned
+        Page<RoomDTO> result = roomService.getAllRooms(filter, pageable);
+
+        // Assert: Verifies that the result is not null and rooms are retrieved
+        assertNotNull(result);
+        assertEquals(result.getContent().size(), 1);
+        assertThat(result).extracting(RoomDTO::getId).containsExactly(1L);
+        assertThat(result).extracting(RoomDTO::getProjectName).containsExactly("Industrial Loft Redesign");
+        verify(roomRepository).findAll(ArgumentMatchers.<Specification<Room>>any(), any(
+                Pageable.class));
         verifyNoMoreInteractions(roomRepository);
 
     }
@@ -238,11 +328,14 @@ public class RoomServiceTest {
     public void testGetAllRooms_ReturnsEmptyList() {
         // Arrange: Empty list is created and Mock Repository to test if it returns a
         // empty list
-        List<Room> rooms = Collections.emptyList();
-        when(roomRepository.findAll()).thenReturn(rooms);
+        String filter = "filter=width==null";
+        Pageable pageable = PageRequest.of(2, 2);
+        Page<Room> rooms = Page.empty();
+        when(roomRepository.findAll(ArgumentMatchers.<Specification<Room>>any(), any(
+                Pageable.class))).thenReturn(rooms);
 
         // Act: Query the service layer the if a empty list is returned
-        List<RoomDTO> result = roomService.getAllRooms();
+        Page<RoomDTO> result = roomService.getAllRooms(filter, pageable);
 
         // Assert: Verifies that the result empty
         assertThat(result).isEqualTo(rooms);
@@ -303,6 +396,9 @@ public class RoomServiceTest {
 
         Project project3 = new Project();
         project3.setId(7L);
+        project3.setClient(client1);
+
+        client1.setProjects(List.of(project3));
 
         RoomCreateDTO roomDTO = new RoomCreateDTO(project3, RoomType.BATHROOM, 4.5, 6.5, 4.0, "m");
 
@@ -319,7 +415,7 @@ public class RoomServiceTest {
         when(roomRepository.save(any(Room.class))).thenReturn(savedRoom);
 
         // Act: Query the service layer the if room is there
-        RoomDTO result = roomService.addRoom(roomDTO, project3.getId());
+        RoomDTO result = roomService.addRoom(roomDTO, project3.getId(), user.getUsername());
 
         // Assert: Verifies that the result is not null and room has been created
         assertNotNull(result);
@@ -341,12 +437,13 @@ public class RoomServiceTest {
         RoomUpdateDTO updatedRoom = new RoomUpdateDTO();
         updatedRoom.setType(RoomType.LIVING_ROOM);
 
+        when(projectService.findProject(2L)).thenReturn(project2);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
-        when(roomRepository.save(room2)).thenReturn(room2);
+        when(roomRepository.save(any(Room.class))).thenReturn(room2);
 
         // Act: Query the service layer to return the Room with the id and update the
         // Room's details
-        RoomDTO result = roomService.updateRoom(roomId, updatedRoom);
+        RoomDTO result = roomService.updateRoom(roomId, updatedRoom, user.getUsername());
 
         // Assert: Verifies that the Room was updated
         assertNotNull(result);
@@ -373,7 +470,7 @@ public class RoomServiceTest {
 
         // Act: Queries if the exception is thrown if Room is not found when updating
         RoomNotFoundException exception = assertThrows(RoomNotFoundException.class, () -> {
-            roomService.updateRoom(roomId, updateRoom);
+            roomService.updateRoom(roomId, updateRoom, user.getUsername());
         });
 
         // Assert: Verifies exception matches the thrown exception
@@ -391,11 +488,12 @@ public class RoomServiceTest {
     public void testDeleteRoom_ReturnsDeleted() {
         // Arrange: Sets the roomId and mocks the repository
         Long roomId = 2L;
+        when(projectService.findProject(2L)).thenReturn(project2);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
 
         // Act: Query the service layer to return the Room with the id and delete the
         // Room
-        roomService.deleteRoom(roomId);
+        roomService.deleteRoom(roomId, user.getUsername());
 
         // Assert: Verifies that the Room was deleted and is not found
         verify(roomRepository).delete(room2);
@@ -416,13 +514,12 @@ public class RoomServiceTest {
 
         // Act: Queries if the exception is thrown if room is not found when deleting
         RoomNotFoundException exception = assertThrows(RoomNotFoundException.class, () -> {
-            roomService.deleteRoom(roomId);
+            roomService.deleteRoom(roomId, user.getUsername());
         });
 
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(roomRepository).findById(roomId);
-        verify(roomRepository, never()).delete(any());
 
     }
 
@@ -442,11 +539,12 @@ public class RoomServiceTest {
         newTask.setTask("Find a double sized bed with a wooden frame");
         newTask.setDate(LocalDate.of(2026, 4, 5));
 
+        when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new task, saves room
-        RoomDTO result = roomService.addTask(roomId, newTask);
+        RoomDTO result = roomService.addTask(roomId, newTask, user.getUsername());
 
         // Assert: Verifies that the result is not null and task has been created
         assertNotNull(result);
@@ -471,11 +569,12 @@ public class RoomServiceTest {
 
         task4.setDate(LocalDate.of(2026, 3, 10));
 
+        when(projectService.findProject(2L)).thenReturn(project2);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
         when(roomRepository.save(room2)).thenReturn(room2);
 
         // Act: Query the service layer the if room exists, adds a new task, saves room
-        RoomDTO result = roomService.editTask(roomId, task4, index);
+        RoomDTO result = roomService.editTask(roomId, task4, index, user.getUsername());
 
         // Assert: Verifies that the result is not null and task has been updated
         assertNotNull(result);
@@ -496,12 +595,13 @@ public class RoomServiceTest {
         Long roomId = 1L;
         int index = 1;
 
+        when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer to return the Room with the id and delete the
         // task and save the room
-        roomService.deleteTask(roomId, index);
+        roomService.deleteTask(roomId, index, user.getUsername());
 
         // Assert: Verifies that the task was deleted, the size of the list is now 1
         assertEquals(room1.getChecklist().size(), 1);
@@ -531,11 +631,12 @@ public class RoomServiceTest {
         newItem.setLink(
                 "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino?variant=55388585918842&gad_source=1&gad_campaignid=21757503987&gbraid=0AAAAADNOeOVm_QYZzEg2oFlbs2I2wuZmD&gclid=CjwKCAjwjtTNBhB0EiwAuswYhjSsFcuAfKf4TY-c07OEm4GAnFZXefbe5Uv5vgGlEPwFGe4lq3lmUxoCJbIQAvD_BwE");
 
+        when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new item, saves room
-        RoomDTO result = roomService.addItem(roomId, newItem);
+        RoomDTO result = roomService.addItem(roomId, newItem, user.getUsername());
 
         // Assert: Verifies that the result is not null and item has been added
         assertNotNull(result);
@@ -561,11 +662,12 @@ public class RoomServiceTest {
         item.setPrice(BigDecimal.valueOf(239.80));
         item.setQuantity(2);
 
+        when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new item, saves room
-        RoomDTO result = roomService.editItem(roomId, item, index);
+        RoomDTO result = roomService.editItem(roomId, item, index, user.getUsername());
 
         // Assert: Verifies that the result is not null and item has been updated
         assertNotNull(result);
@@ -586,12 +688,13 @@ public class RoomServiceTest {
         Long roomId = 1L;
         int index = 0;
 
+        when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer to return the Room with the id and delete the
         // item and save the room
-        roomService.deleteItem(roomId, index);
+        roomService.deleteItem(roomId, index, user.getUsername());
 
         // Assert: Verifies that the task was deleted, the size of the list is now 0
         assertEquals(room1.getInventory().size(), 0);

@@ -1,10 +1,6 @@
 package com.interiordesignplanner.room;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -18,19 +14,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.interiordesignplanner.authentication.Roles;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.authentication.UserRepository;
 import com.interiordesignplanner.client.Client;
-import com.interiordesignplanner.exceptions.RoomNotFoundException;
+import com.interiordesignplanner.client.ClientRepository;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.project.Project;
+import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@WebMvcTest(RoomController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @DisplayName(value = "Room Controller Test Suite")
 public class RoomControllerTest {
 
@@ -41,19 +49,27 @@ public class RoomControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
-        // Mockito Bean replaces MockBean(depreciated)
-        @MockitoBean
-        private RoomService roomService;
+        @Autowired
+        private RoomRepository roomRepository;
 
-        private RoomDTO roomDTO1, roomDTO2;
+        @Autowired
+        private ClientRepository clientRepository;
 
-        private RoomCreateDTO roomCreateDTO, roomCreateDTO2;
+        @Autowired
+        private UserRepository userRepository;
+
+        @Autowired
+        private DesignerRepository designerRepository;
+
+        @Autowired
+        private ProjectRepository projectRepository;
+
+        @Autowired
+        private PasswordEncoder passwordEncoder;
+
+        private Project project1, project2, project3;
 
         private RoomUpdateDTO roomUpdateDTO;
-
-        private Project project1, project2;
-
-        private Client client1;
 
         private Task task, task2, task3, task4;
 
@@ -62,20 +78,52 @@ public class RoomControllerTest {
         private List<Task> checkList1, checkList2;
         private List<Item> inventory1, inventory2;
 
+        private Designer designer;
+
         @BeforeEach
         void setUp() {
 
-                client1 = new Client();
-                client1.setId(7L);
+                roomRepository.deleteAll();
+                projectRepository.deleteAll();
+                clientRepository.deleteAll();
+                designerRepository.deleteAll();
+                userRepository.deleteAll();
+
+                User user = new User();
+                user.setFirstName("Sam");
+                user.setLastName("Williams");
+                user.setEmail("samwilliams@gmail.com");
+                user.setMobileNumber("07348294736");
+                user.setRoles(Roles.DESIGNER);
+                user.setUsername("sam");
+                user.setPassword(passwordEncoder.encode("huwa71egyw"));
+                userRepository.save(user);
+
+                User admin = new User();
+                admin.setFirstName("Grace");
+                admin.setLastName("Smith");
+                admin.setEmail("gracesmith@gmail.com");
+                admin.setMobileNumber("07392648274");
+                admin.setRoles(Roles.ADMIN);
+                admin.setUsername("grace");
+                admin.setPassword(passwordEncoder.encode("bchqwbbbqyw3"));
+                userRepository.save(admin);
+
+                designer = new Designer();
+                designer.setUser(user);
+                designerRepository.save(designer);
+
+                Client client1 = new Client();
                 client1.setFirstName("John");
                 client1.setLastName("Moss");
                 client1.setEmail("johnmoss@gmail.com");
                 client1.setPhone("07894832061");
                 client1.setAddress("4B Avenue, Reading, R6 6E3");
-                client1.setNotes("");
+                client1.setNotes("Prefers eco-friendly materials");
+                client1.setDesigner(designer);
+                clientRepository.save(client1);
 
                 project1 = new Project();
-                project1.setId(6L);
                 project1.setClient(client1);
                 project1.setProjectName("Coastal Escape");
                 project1.setStatus(ProjectStatus.PLANNING);
@@ -86,7 +134,6 @@ public class RoomControllerTest {
                 project1.setDueDate(LocalDate.of(2026, 01, 25));
 
                 project2 = new Project();
-                project2.setId(8L);
                 project2.setClient(client1);
                 project2.setProjectName("Modern Living Room");
                 project2.setStatus(ProjectStatus.ACTIVE);
@@ -95,6 +142,16 @@ public class RoomControllerTest {
                 project2.setMeetingURL("https://meet.google.com/hyd-ken-csa");
                 project2.setStartDate(LocalDate.of(2026, 5, 20));
                 project2.setDueDate(LocalDate.of(2026, 9, 25));
+
+                project3 = new Project();
+                project3.setClient(client1);
+                project3.setProjectName("Scandinavian Loft");
+                project3.setBudget(BigDecimal.valueOf(8000.00));
+                project3.setStatus(ProjectStatus.PLANNING);
+                project3.setDescription("Light lighting and open space");
+                project3.setMeetingURL("https://meet.google.com/7tf-do9-34s");
+                project3.setStartDate(LocalDate.of(2025, 07, 20));
+                project3.setDueDate(LocalDate.of(2026, 10, 25));
 
                 task = new Task();
                 task.setTaskName("Flooring");
@@ -136,7 +193,7 @@ public class RoomControllerTest {
                 item2.setPrice(BigDecimal.valueOf(79.95));
                 item2.setQuantity(5);
                 item2.setLink(
-                                "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
+                                "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light");
 
                 checkList1 = new ArrayList<>();
                 inventory1 = new ArrayList<>();
@@ -144,15 +201,30 @@ public class RoomControllerTest {
                 checkList2 = new ArrayList<>();
                 inventory2 = new ArrayList<>();
 
-                roomCreateDTO = new RoomCreateDTO();
-                roomCreateDTO.setType(RoomType.KITCHEN);
-                roomCreateDTO.setWidth(5.2);
-                roomCreateDTO.setHeight(4.0);
-                roomCreateDTO.setLength(4.5);
-                roomCreateDTO.setUnit("m");
+                Room room1 = new Room();
+                room1.setProject(project1);
+                room1.setType(RoomType.KITCHEN);
+                room1.setWidth(5.2);
+                room1.setHeight(4.0);
+                room1.setLength(4.5);
+                room1.setUnit("m");
+                room1.setInventory(inventory1);
+                room1.setChecklist(checkList1);
 
-                roomDTO1 = new RoomDTO();
-                roomDTO1.setId(1L);
+                Room room2 = new Room();
+                room2.setProject(project2);
+                room2.setType(RoomType.LIVING_ROOM);
+                room2.setWidth(6.4);
+                room2.setHeight(3.0);
+                room2.setLength(7.5);
+                room2.setUnit("m");
+                room2.setInventory(inventory2);
+                room2.setChecklist(checkList2);
+
+                project1.setRoom(room1);
+                project2.setRoom(room2);
+
+                RoomDTO roomDTO1 = new RoomDTO();
                 roomDTO1.setProjectName("Coastal Escape");
                 roomDTO1.setType(RoomType.KITCHEN);
                 roomDTO1.setWidth(5.2);
@@ -162,8 +234,7 @@ public class RoomControllerTest {
                 roomDTO1.setInventory(inventory1);
                 roomDTO1.setChecklist(checkList1);
 
-                roomDTO2 = new RoomDTO();
-                roomDTO2.setId(2L);
+                RoomDTO roomDTO2 = new RoomDTO();
                 roomDTO2.setProjectName("Modern Living Room");
                 roomDTO2.setType(RoomType.LIVING_ROOM);
                 roomDTO2.setWidth(6.4);
@@ -181,35 +252,34 @@ public class RoomControllerTest {
                 checkList2.add(task4);
                 inventory2.add(item);
 
+                roomRepository.save(room1);
+                roomRepository.save(room2);
+                projectRepository.save(project1);
+                projectRepository.save(project2);
+                projectRepository.save(project3);
+
         }
 
         @Test
         @DisplayName("GetAllRooms: Should return all Rooms")
+        @WithMockUser(roles = "ADMIN")
         void testGetAllRooms() throws Exception {
 
-                // Given
-                when(roomService.getAllRooms()).thenReturn(List.of(roomDTO1, roomDTO2));
-
-                // When/Then
-                mockMvc.perform(get("/api/rooms")
+                mockMvc.perform(get("/api/admin/rooms?page=0&size=10")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(2)))
-                                .andExpect(jsonPath("$[0].type", is(
+                                .andExpect(jsonPath("$.content", hasSize(2)))
+                                .andExpect(jsonPath("$.content[0].type", is(
                                                 "KITCHEN")))
-                                .andExpect(jsonPath("$[1].projectName", is("Modern Living Room")));
-
-                verify(roomService).getAllRooms();
+                                .andExpect(jsonPath("$.content[1].projectName", is("Modern Living Room")));
         }
 
         @Test
         @DisplayName("GetRoomById: Should return a Room")
+        @WithMockUser(roles = "ADMIN")
         void testGetRoomById() throws Exception {
-                // Given
-                when(roomService.getRoomById(2L)).thenReturn(roomDTO2);
 
-                // When/Then
-                mockMvc.perform(get("/api/rooms/2")
+                mockMvc.perform(get("/api/admin/rooms/2")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id", is(2)))
@@ -218,121 +288,113 @@ public class RoomControllerTest {
                                 .andExpect(jsonPath("$.checklist[0].taskName",
                                                 is("Contractors")));
 
-                verify(roomService).getRoomById(2L);
         }
 
         @Test
         @DisplayName("GetRoomById: Room Not Found")
+        @WithMockUser(roles = "ADMIN")
         void testGetRoomById_NotFound() throws Exception {
-                // Given
-                when(roomService.getRoomById(80L)).thenThrow(new RoomNotFoundException("roomId", 80L));
 
-                // When/Then
-                mockMvc.perform(get("/api/rooms/80")
+                mockMvc.perform(get("/api/admin/rooms/80")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.message", is("Room is not found with roomId: 80")));
 
-                verify(roomService).getRoomById(80L);
         }
 
         @Test
         @DisplayName("AddRoom: Room is created")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testAddRoom() throws Exception {
                 // Given
 
-                Long projectId = project1.getId();
-                when(roomService.addRoom(roomCreateDTO, projectId)).thenReturn(roomDTO1);
+                Long projectId = project3.getId();
+
+                RoomCreateDTO room3 = new RoomCreateDTO();
+                room3.setProject(project3);
+                room3.setType(RoomType.LOFT);
+                room3.setWidth(8.2);
+                room3.setHeight(4.0);
+                room3.setLength(9.5);
+                room3.setUnit("m");
 
                 // When/Then
                 mockMvc.perform(post("/api/rooms/{projectId}", projectId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(roomDTO1)))
+                                .content(objectMapper.writeValueAsString(room3)))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.type", is("KITCHEN")));
+                                .andExpect(jsonPath("$.type", is("LOFT")));
 
-                verify(roomService).addRoom(roomCreateDTO, projectId);
         }
 
         @Test
         @DisplayName("AddRoom: Missing width")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testAddRoom_ValidationFailure() throws Exception {
                 // Given
-                roomCreateDTO2 = new RoomCreateDTO();
-                roomCreateDTO2.setType(RoomType.LIVING_ROOM);
-                roomCreateDTO2.setProject(project2);
-                roomCreateDTO2.setHeight(3.0);
-                roomCreateDTO2.setLength(7.5);
-                roomCreateDTO2.setUnit("m");
+                RoomCreateDTO room4 = new RoomCreateDTO();
+                room4.setType(RoomType.LIVING_ROOM);
+                room4.setProject(project2);
+                room4.setHeight(3.0);
+                room4.setLength(7.5);
+                room4.setUnit("m");
 
                 // When/Then
                 mockMvc.perform(post("/api/rooms/{projectId}", project2.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(roomCreateDTO2)))
+                                .content(objectMapper.writeValueAsString(room4)))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.width", is("Width is required")));
-
-                verify(roomService, never()).addRoom(roomCreateDTO, project2.getId());
         }
 
         @Test
         @DisplayName("UpdateRoom: Room's Due Date is updated")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testUpdateRoom() throws Exception {
                 // Given
-                Long id = roomDTO2.getId();
                 roomUpdateDTO = new RoomUpdateDTO();
                 roomUpdateDTO.setType(RoomType.BATHROOM);
 
-                roomDTO2.setType(RoomType.BATHROOM);
-
-                when(roomService.updateRoom(id, roomUpdateDTO)).thenReturn(roomDTO2);
-
                 // When/Then
-                mockMvc.perform(put("/api/rooms/{id}", id)
+                mockMvc.perform(put("/api/rooms/{id}", 2)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(roomUpdateDTO)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.type", is("BATHROOM")));
 
-                verify(roomService).updateRoom(id, roomUpdateDTO);
         }
 
         @Test
         @DisplayName("UpdateRoom: Room not found")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testUpdateRoom_NotFound() throws Exception {
                 // Given
-                Long id = 9L;
                 roomUpdateDTO = new RoomUpdateDTO();
-                when(roomService.updateRoom(id, roomUpdateDTO))
-                                .thenThrow(new RoomNotFoundException("roomId", id));
+                roomUpdateDTO.setType(RoomType.BATHROOM);
 
                 // When/Then
-                mockMvc.perform(put("/api/rooms/{roomId}", id)
+                mockMvc.perform(put("/api/rooms/{roomId}", 9)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(roomUpdateDTO)))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.message", is("Room is not found with roomId: 9")));
 
-                verify(roomService).updateRoom(id, roomUpdateDTO);
         }
 
         @Test
         @DisplayName("DeleteRoom: Room is deleted")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteRoom() throws Exception {
-                // Given
-                Long id = 2L;
-                doNothing().when(roomService).deleteRoom(id);
 
-                // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}", id)
+                mockMvc.perform(delete("/api/rooms/{id}", 2)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
-                verify(roomService).deleteRoom(id);
         }
 
         @Test
         @DisplayName("AddTask: Created a new Task")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testAddTask() throws Exception {
                 // Given
 
@@ -341,44 +403,32 @@ public class RoomControllerTest {
                 newTask.setTask("Find a green or blue sofa");
                 newTask.setDate(LocalDate.of(2026, 3, 15));
 
-                Long roomId = roomDTO1.getId();
-
                 checkList1.add(newTask);
 
-                roomDTO1.setChecklist(checkList1);
-
-                when(roomService.addTask(roomId, newTask)).thenReturn(roomDTO1);
-
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task", roomId)
+                mockMvc.perform(patch("/api/rooms/{roomId}/task", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 newTask)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.checklist[2].taskName", is("Order Sofa")));
 
-                verify(roomService).addTask(roomId, newTask);
         }
 
         @Test
         @DisplayName("EditTask: Edited Task")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testEditTask() throws Exception {
                 // Given
 
                 task.setTaskName("Kitchen Flooring");
 
-                Long roomId = roomDTO1.getId();
-
                 int index = 0;
 
                 checkList1.set(index, task);
 
-                roomDTO1.setChecklist(checkList1);
-
-                when(roomService.editTask(roomId, task, index)).thenReturn(roomDTO1);
-
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", roomId, index)
+                mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", 1, index)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 task)))
@@ -388,27 +438,26 @@ public class RoomControllerTest {
                                                 "$.checklist[0].task",
                                                 is("Remove floor tiles in the Kitchen")));
 
-                verify(roomService).editTask(roomId, task, index);
         }
 
         @Test
         @DisplayName("DeleteTask: Task is deleted")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteTask() throws Exception {
                 // Given
                 Long id = 2L;
                 int index = 1;
-                doNothing().when(roomService).deleteTask(id, index);
 
                 // When/Then
                 mockMvc.perform(delete("/api/rooms/{id}/task/{index}", id, index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
-                verify(roomService).deleteTask(id, index);
         }
 
         @Test
         @DisplayName("AddItem: Created a new Item")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testAddItem() throws Exception {
                 // Given
 
@@ -421,47 +470,35 @@ public class RoomControllerTest {
                 newItem.setQuantity(2);
                 newItem.setDimensions("W: 47, D: 51, H: 88cm");
                 newItem.setLink(
-                                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino?variant=55388585918842&gad_source=1&gad_campaignid=21757503987&gbraid=0AAAAADNOeOVm_QYZzEg2oFlbs2I2wuZmD&gclid=CjwKCAjwjtTNBhB0EiwAuswYhjSsFcuAfKf4TY-c07OEm4GAnFZXefbe5Uv5vgGlEPwFGe4lq3lmUxoCJbIQAvD_BwE");
+                                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino");
                 newItem.setOrdered(false);
-
-                Long roomId = roomDTO1.getId();
 
                 inventory1.add(newItem);
 
-                roomDTO1.setInventory(inventory1);
-
-                when(roomService.addItem(roomId, newItem)).thenReturn(roomDTO1);
-
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", roomId)
+                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", 1)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 newItem)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.inventory[1].itemName", is("Barstools")));
 
-                verify(roomService).addItem(roomId, newItem);
         }
 
         @Test
         @DisplayName("EditItem: Edited Item")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testEditItem() throws Exception {
                 // Given
 
                 item.setLink("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood");
 
-                Long roomId = roomDTO2.getId();
-
                 int index = 0;
 
                 inventory2.set(index, item);
 
-                roomDTO2.setInventory(inventory2);
-
-                when(roomService.editItem(roomId, item, index)).thenReturn(roomDTO2);
-
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", roomId, index)
+                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", 2, index)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 item)))
@@ -470,23 +507,21 @@ public class RoomControllerTest {
                                 .andExpect(jsonPath("$.inventory[0].link",
                                                 is("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood")));
 
-                verify(roomService).editItem(roomId, item, index);
         }
 
         @Test
         @DisplayName("DeleteItem: Item is deleted")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteItem() throws Exception {
                 // Given
                 Long id = 2L;
-                int index = 1;
-                doNothing().when(roomService).deleteItem(id, index);
+                int index = 0;
 
                 // When/Then
                 mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", id, index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
-                verify(roomService).deleteItem(id, index);
         }
 
 }

@@ -2,7 +2,10 @@ package com.interiordesignplanner.room;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -13,7 +16,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  */
 @Repository
-public interface RoomRepository extends JpaRepository<Room, Long> {
+public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificationExecutor<Room> {
 
     /**
      * Finds a room by type.
@@ -22,6 +25,6 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
      * @return an {@link List} containing all the rooms with the specific type if
      *         found, otherwise empty
      */
-    List<Room> findRoomsByType(RoomType type);
+    Page<Room> findRoomsByType(RoomType type, Pageable pageable);
 
 }
