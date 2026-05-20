@@ -1,0 +1,9 @@
+# Database
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+
+# JWT
+jwt.secret=
+jwt.expiration=
+jwt.header=
