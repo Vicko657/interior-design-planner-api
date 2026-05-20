@@ -1,18 +1,40 @@
 # Interior Design Planner API 🏚️🏠
 
-A lightweight planner that helps **Interior designers** to organise projects from planning to completion for their clients. The REST API allows the designers to track clients details, projects, tasks, timelines and room specifications.
+A lightweight RESTful API that helps **interior designers** organise projects from planning to completion for their clients. The API allows designers to track clients details, projects, tasks, timelines and room specifications.
 
-## 📝 Main Features
+---
 
-- **Client Management** - CRUD functionalities to access client details.
-- **Project Management** - CRUD functionalities to help manage projects with a budget, deadlines, status and meeting links.
-- **Room Management** - CRUD functionalities to define rooms with dimensions, room type and design changes and checklists.
-- **Status Tracking** - Use of enums to track project stages i.e PLANNING, COMPLETED, ARCHIVED...
-- **Audit Logging** - Automatically notes the dates when projects are completed and when clients details, projects and rooms are created or updated.
+## 📝 Features
+
+- **Client Management** - CRUD operations for client details.
+- **Project Management** - manage projects with a budget, deadlines, status and meeting links.
+- **Room Management** - define rooms with dimensions, room type and design changes and checklists.
+- **Status Tracking** - track project stages using enums i.e PLANNING, COMPLETED, ARCHIVED...
+- **Audit Logging** - automatically records dates created and updated timestamps.
+- **Spring Security** - JWT authentication and authorisation.
+- **Role Based Access Control** - ADMIN and Designer roles.
+- **Pagination and Filtering** - paginated endpoints with RSQL Support.
+
+---
+
+## 🗺️ Architecture
+
+![Achitecture Diagram](docs/interior_design_planner_achitecture.png)
+
+---
+
+### Entity Relationships
+
+- **User** -> one to one -> **Designer** (one user can have one designer)
+- **Designer** -> one to many -> **Client** (one designer can have many clients)
+- **Client** -> one to many -> **Projects** (one client can have many projects)
+- **Project** -> one to one -> **Room** (one project can have one room)
+
+---
 
 ## 🛠️ Tech Stack
 
-**Languages**: <object>![Java](https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white)</object>
+**Languages**: ![Java 17](https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white)
 
 **Frameworks**: ![Springboot](https://img.shields.io/badge/springboot-6DB33F?style=flat-square&logo=springboot&logoColor=white) ![Hibernate](https://img.shields.io/badge/hibernate-59666C?style=flat-square&logo=hibernate&logoColor=white)
 
@@ -24,193 +46,169 @@ A lightweight planner that helps **Interior designers** to organise projects fro
 
 **Version Control**: ![Git](https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)
 
+**Containerisation**: ![Docker](https://img.shields.io/badge/docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+
 **API Testing**: ![Postman](https://img.shields.io/badge/postman-FF6C37?style=flat-square&logo=postman&logoColor=white)
+
+---
+
+## 📦 Libraries
+
+- [RSQL-JPA](https://github.com/perplexhub/rsql-jpa-specification) - RSQL filtering support for JPA repositories
+
+---
 
 ## 🧱 Prerequisites
 
 1. Install [Java 17+](https://www.java.com/en/)
 2. Install [Maven](https://maven.apache.org/) with your IDE
-3. Use an IDE - [Visual Studio Code](https://code.visualstudio.com/) or (IntelliJ IDEA, Eclipse)
-4. Set up a [MySQL](https://www.mysql.com/) Database (and configure username/password in application.properties)
-5. [Git](https://git-scm.com/) installed
-6. Use [Postman](https://www.postman.com/) to test REST API endpoints
+3. Use an IDE - [Visual Studio Code](https://code.visualstudio.com/) or [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
+4. Install [Docker](https://www.docker.com/products/docker-desktop/)
+5. Install [Git](https://git-scm.com/)
+6. Install [Postman](https://www.postman.com/) to test REST API endpoints
+
+---
 
 ## 👷🏿‍♀️ Getting Started
 
-1. Clone the repository
+### Clone the repository
 
 ```
  git clone https://github.com/Vicko657/interior-design-planner-api.git
+ cd interior-design-planner-api
 ```
 
-2. Go to the project directory
+### Configure environment variables:
 
-```javascript
-cd interior-design-planner-api
+- Create a `.env` file in the project root, see `.env.example` for required variables.
+- Create a `local.properties` file in `src/main/resources`, see `local.properties.example` for required variables.
+
+### Start MySQL with Docker
+
+```
+docker-compose up -d
 ```
 
-3. Build the project using Maven
+### Build and run:
 
 ```
 ./mvnw clean install
-```
-
-4.  Run the application **(Make sure you have the MYSQL Database Connection setup)**
-
-```
 ./mvnw spring-boot:run
 ```
 
-## 💡 MYSQL Database Connection:
+---
 
-Use this file path to access the (Mysql_Dump_File)
+## 🔐 Security
 
-```
-/interior-design-planner-api/Mysql_Dump_File
-```
+- JWT token based authentication
+- Role based access control
 
-In your terminal sign in to mysql and create a database
+| Role     | Access                                          |
+| -------- | ----------------------------------------------- |
+| Admin    | Full access to all endpoints                    |
+| Designer | Access to their own clients, projects and rooms |
 
-```
-mysql -u username -p
-
-CREATE DATABASE interiordesignplanner;
-exit;
-```
-
-Import the (Mysql_Dump_File.sql)
-
-```
-mysql -u username -p interiordesignplanner < /interior-design-planner-api/Mysql_Dump_File.sql
-```
-
-Create a local.properties file in the resources folder /interior-design-planner-api/src/main/resources
-
-```
-# Replace "url" with your database url
-spring.datasource.url=jdbc:mysql:jdbc:mysql://localhost:3306/interiordesignplanner
-
-# Replace "root" with your database user
-spring.datasource.username="root"
-
-# Specify your database user's password
-spring.datasource.password="password"
-```
+---
 
 ## 📏 📐 Testing
-
-Unit tests were created for the repositiory and service, to test out the functionalities of the methods used and to check for any vulnerabilities.
 
 ```
 ./mvnw clean test
 ```
 
+Test coverage includes:
+
+- Unit tests for service layer
+- Repository tests
+- Integration tests for controller layer
+
+---
+
 ## 🛋️ API Documentation
 
-**Javadocs**
+### Swagger UI
 
-Use this file path to view the javadocs documentation:
+Full API documentation available when the application is running locally:
 
-```
-interior-design-planner-api/docs/apidocs/index.html
-
-./mvnw javadoc:javadoc
-```
-
-**Swagger:**
-
-When the API is running you can check the **Swagger UI** documentation through this link:
-
-```
 http://localhost:8080/swagger-ui-interior-design-planner.html
-```
+
+---
 
 ## 🏘️ API Endpoints
 
-The Interior Design Planner API provides different endpoints to help the designer manage their interior design projects with their clients.
-
-The entity relationships between the three entities: Client, Project and Room will allow the interior designer to perform CRUD operations on each entity, as well as query data.
-
 Here are some examples of the endpoints used in the API:
 
-### 💁🏾‍♀️ Clients Endpoints
+### 🔑 Authentication (Public)
+
+| Method | Endpoint           | Description                            |
+| ------ | ------------------ | -------------------------------------- |
+| POST   | /api/auth/register | Register new user                      |
+| POST   | /api/auth/login    | Created, resource created successfully |
+
+### 💁🏾‍♀️ Clients
 
 <hr>
 
-**Creates a new Client**
+| Method | Endpoint     | Description                        |
+| ------ | ------------ | ---------------------------------- |
+| POST   | /api/clients | Creates a new client on the system |
+| GET    | /api/clients | Returns the designer's clients     |
 
-- HTTP Method: POST
-
-- Creates a new Client on the system. It should return their details such as their name, email, phone number, address and projects.
-
-```
-/clients
-```
-
-**Finds Client by Lastname**
-
-- HTTP Method: GET
-
-- Retrieves clients by last name. Returns a list of matching clients or an empty list.
-
-```
-/clients/lastName/{lastName}
-```
-
-</br>
-
-### 🗂️ Project Endpoints
+### 🗂️ Projects
 
 <hr>
 
-**Find Projects by Status**
+| Method | Endpoint                      | Description                                |
+| ------ | ----------------------------- | ------------------------------------------ |
+| GET    | /api/projects/status/{status} | Returns projects with the specified status |
+| GET    | /api/projects/deadlines       | Returns projects ordered by dueDate        |
 
-- HTTP Method: GET
-
-- Retrieves all projects with the specified status. The statuses are Enums and are case-insensitive.
-
-```
-/projects/status/{status}
-```
-
-#### **Orders Projects by deadline**
-
-- HTTP Method: GET
-
-- Retrieves all projects ordered by their dueDate in ascending order.
-
-```
-/projects/deadlines
-```
-
-</br>
-
-### 🛌 Rooms Endpoints
+### 🛌 Rooms
 
 <hr>
 
-**Find Rooms by Room Type**
+| Method | Endpoint                                 | Description                             |
+| ------ | ---------------------------------------- | --------------------------------------- |
+| GET    | /api/rooms/type/{type}                   | Returns rooms with the specified type   |
+| PATCH  | /api/rooms/{roomId}/projects/{projectId} | Reassigns a room to a different project |
 
-- HTTP Method: GET
+---
 
-- Retrieves all rooms with the specified type. The type are Enums and are case-insensitive.
+## 🔍 RSQL Filtering (ADMIN only)
 
-```
-/rooms/type/{type}
-```
-
-**Reassigns Room with a different project**
-
-- HTTP Method: PATCH
-
-- Reassign a room to a different project, keeping the one to one relationship.
+The API supports RSQL filtering for advanced admin queries:
 
 ```
-/rooms/{roomId}/projects/{projectId}
+GET /api/admin/clients?filter=firstName==Johnson
+GET /api/admin/projects?filter=ACTIVE
+GET /api/admin/rooms?filter=type==LIVING_ROOM;width=gt=3.0
 ```
 
-<br>
+- RSQL filtering is restricted to ADMIN role only
+- DESIGNER role has access to standard endpoints only;
+
+---
 
 ## ⚠️ Error Handling
 
-The API uses standard HTTP status codes to indicate errors. Custom exceptions for each entity (e.g ClientNotFoundException) are thrown when a resource is missing or a request is invalid. Spring automatically returns the corresponding status code (e.g., 404 Not Found, 400 Bad Request) along with a descriptive error message.
+| Status Code | Description                              |
+| ----------- | ---------------------------------------- |
+| 200         | OK - request successful                  |
+| 201         | Created - resource created successfully  |
+| 400         | Bad Request - invalid input              |
+| 401         | Unauthorized - invalid or missing token  |
+| 403         | Forbidden - insufficient permissions     |
+| 404         | Not Found - resources not found          |
+| 500         | Internal Server Error - unexpected error |
+
+Custom exceptions are thrown for each entity (e.g `ClientNotFoundException` with descriptive error messages).
+
+---
+
+## 🖥️ Frontend
+
+The frontend for this application is available at:
+[Interior Design Planner Frontend](https://github.com/Vicko657/interior-design-planner-app)
+
+`Live application:`
+https://viewinterior.netlify.app
