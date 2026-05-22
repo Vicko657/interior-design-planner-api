@@ -7,6 +7,7 @@ A lightweight RESTful API that helps **interior designers** organise projects fr
 ## 💡 Live Application
 
 - API Documentation: https://interior-design-planner.up.railway.app/swagger-ui/index.html
+- Health Check: https://interior-design-planner.up.railway.app/actuator/health
 
 ---
 
