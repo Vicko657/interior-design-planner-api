@@ -4,6 +4,12 @@ A lightweight RESTful API that helps **interior designers** organise projects fr
 
 ---
 
+## 💡 Live Application
+
+- API Documentation: https://interior-design-planner.up.railway.app/swagger-ui/index.html
+
+---
+
 ## 📝 Features
 
 - **Client Management** - CRUD operations for client details.
@@ -121,16 +127,6 @@ Test coverage includes:
 - Unit tests for service layer
 - Repository tests
 - Integration tests for controller layer
-
----
-
-## 🛋️ API Documentation
-
-### Swagger UI
-
-Full API documentation available when the application is running locally:
-
-http://localhost:8080/swagger-ui-interior-design-planner.html
 
 ---
 
