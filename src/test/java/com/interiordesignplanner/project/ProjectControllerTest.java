@@ -21,6 +21,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interiordesignplanner.authentication.Roles;
@@ -34,6 +35,7 @@ import com.interiordesignplanner.designer.DesignerRepository;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 @DisplayName(value = "Project Controller Test Suite")
 public class ProjectControllerTest {
 
@@ -64,6 +66,8 @@ public class ProjectControllerTest {
         private Client client1;
 
         private Designer designer;
+
+        private Project project1, project2;
 
         @BeforeEach
         void setUp() {
@@ -107,7 +111,7 @@ public class ProjectControllerTest {
                 client1.setDesigner(designer);
                 clientRepository.save(client1);
 
-                Project project1 = new Project();
+                project1 = new Project();
                 project1.setClient(client1);
                 project1.setProjectName("Industrial Loft Redesign");
                 project1.setStatus(ProjectStatus.PLANNING);
@@ -117,7 +121,7 @@ public class ProjectControllerTest {
                 project1.setStartDate(LocalDate.of(2025, 07, 20));
                 project1.setDueDate(LocalDate.of(2026, 04, 25));
 
-                Project project2 = new Project();
+                project2 = new Project();
                 project2.setClient(client1);
                 project2.setProjectName("Luxury Master Bedroom");
                 project2.setStatus(ProjectStatus.ACTIVE);
@@ -203,10 +207,10 @@ public class ProjectControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetProjectById() throws Exception {
 
-                mockMvc.perform(get("/api/admin/projects/1")
+                mockMvc.perform(get("/api/admin/projects/{id}", project1.getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id", is(1)))
+                                .andExpect(jsonPath("$.id").exists())
                                 .andExpect(jsonPath("$.status", is(
                                                 "PLANNING")))
                                 .andExpect(jsonPath("$.description",
@@ -247,7 +251,7 @@ public class ProjectControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(project3)))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.id", is(3)));
+                                .andExpect(jsonPath("$.id").exists());
 
         }
 
@@ -283,7 +287,7 @@ public class ProjectControllerTest {
                 projectUpdateDTO.setDueDate(LocalDate.of(2026, 8, 19));
 
                 // When/Then
-                mockMvc.perform(put("/api/projects/{id}", 2)
+                mockMvc.perform(put("/api/projects/{id}", project2.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(projectUpdateDTO)))
                                 .andExpect(status().isOk())
@@ -312,7 +316,7 @@ public class ProjectControllerTest {
         void testDeleteProject() throws Exception {
 
                 // When/Then
-                mockMvc.perform(delete("/api/projects/2")
+                mockMvc.perform(delete("/api/projects/{id}", project2.getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 

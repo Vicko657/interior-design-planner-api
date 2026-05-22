@@ -34,11 +34,15 @@ import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
+
+import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 @DisplayName(value = "Room Controller Test Suite")
 public class RoomControllerTest {
 
@@ -79,6 +83,8 @@ public class RoomControllerTest {
         private List<Item> inventory1, inventory2;
 
         private Designer designer;
+
+        private Room room1, room2;
 
         @BeforeEach
         void setUp() {
@@ -201,7 +207,7 @@ public class RoomControllerTest {
                 checkList2 = new ArrayList<>();
                 inventory2 = new ArrayList<>();
 
-                Room room1 = new Room();
+                room1 = new Room();
                 room1.setProject(project1);
                 room1.setType(RoomType.KITCHEN);
                 room1.setWidth(5.2);
@@ -211,7 +217,7 @@ public class RoomControllerTest {
                 room1.setInventory(inventory1);
                 room1.setChecklist(checkList1);
 
-                Room room2 = new Room();
+                room2 = new Room();
                 room2.setProject(project2);
                 room2.setType(RoomType.LIVING_ROOM);
                 room2.setWidth(6.4);
@@ -279,10 +285,11 @@ public class RoomControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetRoomById() throws Exception {
 
-                mockMvc.perform(get("/api/admin/rooms/2")
+                mockMvc.perform(get("/api/admin/rooms/{id}", room2
+                                .getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id", is(2)))
+                                .andExpect(jsonPath("$.id").exists())
                                 .andExpect(jsonPath("$.width", is(
                                                 6.4)))
                                 .andExpect(jsonPath("$.checklist[0].taskName",
@@ -356,7 +363,7 @@ public class RoomControllerTest {
                 roomUpdateDTO.setType(RoomType.BATHROOM);
 
                 // When/Then
-                mockMvc.perform(put("/api/rooms/{id}", 2)
+                mockMvc.perform(put("/api/rooms/{id}", room2.getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(roomUpdateDTO)))
                                 .andExpect(status().isOk())
@@ -386,7 +393,8 @@ public class RoomControllerTest {
         @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteRoom() throws Exception {
 
-                mockMvc.perform(delete("/api/rooms/{id}", 2)
+                mockMvc.perform(delete("/api/rooms/{id}", room2
+                                .getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
@@ -406,7 +414,8 @@ public class RoomControllerTest {
                 checkList1.add(newTask);
 
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task", 1)
+                mockMvc.perform(patch("/api/rooms/{roomId}/task", room1
+                                .getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 newTask)))
@@ -428,7 +437,8 @@ public class RoomControllerTest {
                 checkList1.set(index, task);
 
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", 1, index)
+                mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", room1
+                                .getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 task)))
@@ -445,11 +455,10 @@ public class RoomControllerTest {
         @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteTask() throws Exception {
                 // Given
-                Long id = 2L;
                 int index = 1;
 
                 // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}/task/{index}", id, index)
+                mockMvc.perform(delete("/api/rooms/{id}/task/{index}", room2.getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
@@ -476,7 +485,8 @@ public class RoomControllerTest {
                 inventory1.add(newItem);
 
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", 1)
+                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", room1
+                                .getId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 newItem)))
@@ -498,7 +508,8 @@ public class RoomControllerTest {
                 inventory2.set(index, item);
 
                 // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", 2, index)
+                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", room2
+                                .getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(
                                                 item)))
@@ -514,11 +525,11 @@ public class RoomControllerTest {
         @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
         void testDeleteItem() throws Exception {
                 // Given
-                Long id = 2L;
                 int index = 0;
 
                 // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", id, index)
+                mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", room2
+                                .getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
