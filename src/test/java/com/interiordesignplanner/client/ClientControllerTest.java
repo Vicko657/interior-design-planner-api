@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 @DisplayName(value = "Client Controller Test Suite")
 public class ClientControllerTest {
 
@@ -56,8 +57,9 @@ public class ClientControllerTest {
 
     private Designer designer;
 
+    private Client client1, client2;
+
     @BeforeEach
-    @Transactional
     void setUp() {
 
         clientRepository.deleteAll();
@@ -88,7 +90,7 @@ public class ClientControllerTest {
         designer.setUser(user);
         designerRepository.save(designer);
 
-        Client client1 = new Client();
+        client1 = new Client();
         client1.setFirstName("Jessica");
         client1.setLastName("Cook");
         client1.setEmailAddress("jessicacook@gmail.com");
@@ -98,7 +100,7 @@ public class ClientControllerTest {
         client1.setDesigner(designer);
         clientRepository.save(client1);
 
-        Client client2 = new Client();
+        client2 = new Client();
         client2.setFirstName("Alex");
         client2.setLastName("Price");
         client2.setEmailAddress("aprice@gmail.com");
@@ -167,7 +169,7 @@ public class ClientControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.content[0].fullName").value("Jessica Cook"))
-                .andExpect(jsonPath("$.content[1].email", is("aprice@gmail.com")));
+                .andExpect(jsonPath("$.content[1].emailAddress", is("aprice@gmail.com")));
 
     }
 
@@ -178,11 +180,11 @@ public class ClientControllerTest {
         // Given
 
         // When/Then
-        mockMvc.perform(get("/api/admin/clients/1")
+        mockMvc.perform(get("/api/admin/clients/{id}", client1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.email", is("jessicacook@gmail.com")))
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.emailAddress", is("jessicacook@gmail.com")))
                 .andExpect(jsonPath("$.notes", is("Prefers eco-friendly materials")));
     }
 
@@ -219,7 +221,7 @@ public class ClientControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(client)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(3)));
+                .andExpect(jsonPath("$.id").exists());
 
     }
 
@@ -253,7 +255,7 @@ public class ClientControllerTest {
         clientUpdateDTO.setFirstName("Alexandra");
 
         // When/Then
-        mockMvc.perform(put("/api/clients/{id}", 2)
+        mockMvc.perform(put("/api/clients/{id}", client2.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(clientUpdateDTO)))
                 .andExpect(status().isOk())
@@ -285,7 +287,7 @@ public class ClientControllerTest {
     void testDeleteClient() throws Exception {
 
         // When/Then
-        mockMvc.perform(delete("/api/admin/clients/2")
+        mockMvc.perform(delete("/api/admin/clients/{id}", client2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
