@@ -11,6 +11,15 @@ A lightweight RESTful API that helps **interior designers** organise projects fr
 
 ---
 
+## 💡 CI/CD Pipeline
+
+- **CI:** GitHub Actions runs all tests for every push and pull request to `main`
+- **CD:** Railway automatically deploys on every merge to `main` after tests pass
+
+[![CI](https://github.com/Vicko657/interior-design-planner-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Vicko657/interior-design-planner-api/actions/workflows/ci.yml)
+
+---
+
 ## 📝 Features
 
 - **Client Management** - CRUD operations for client details.
@@ -57,6 +66,10 @@ A lightweight RESTful API that helps **interior designers** organise projects fr
 
 **API Testing**: ![Postman](https://img.shields.io/badge/postman-FF6C37?style=flat-square&logo=postman&logoColor=white)
 
+**CI/CD**: ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)
+
+**Deployment**: ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)
+
 ---
 
 ## 📦 Libraries
@@ -85,7 +98,7 @@ A lightweight RESTful API that helps **interior designers** organise projects fr
  cd interior-design-planner-api
 ```
 
-### Configure environment variables:
+### Configure environment variables
 
 - Create a `.env` file in the project root, see `.env.example` for required variables.
 - Create a `local.properties` file in `src/main/resources`, see `local.properties.example` for required variables.
