@@ -41,7 +41,7 @@ public class Project extends AbstractEntity {
     // Foreign key to Client entity, many to one bidirectional relationship.
     @ManyToOne
     @JoinColumn(name = "client_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonBackReference("client-project")
     private Client client;
 
     // Name of the project
@@ -69,7 +69,7 @@ public class Project extends AbstractEntity {
 
     // Creates One to One Bidirectional relationship with the room entity
     @OneToOne(mappedBy = "project")
-    @JsonManagedReference
+    @JsonManagedReference("project-room")
     private Room room;
 
 }
