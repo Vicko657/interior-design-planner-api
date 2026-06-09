@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientDTO;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerProfileDTO;
+import com.interiordesignplanner.designer.DesignerProfileUpdateDTO;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectDTO;
 import com.interiordesignplanner.room.Room;
@@ -58,6 +61,45 @@ public class ModelMapperConfig {
             if (source.getProject() != null) {
                 destination.setProjectName((source.getProject().getProjectName()));
             }
+            return destination;
+        });
+
+        // Converts User Id to Designer Name, EmailAddress and PhoneNumber when mapped
+        mapper.createTypeMap(Designer.class, DesignerProfileDTO.class).setPostConverter(convert -> {
+            Designer source = convert.getSource();
+            DesignerProfileDTO destination = convert.getDestination();
+            if (source.getUser() != null) {
+                destination.setName(source.getUser().getFirstName() + " " + source.getUser().getLastName());
+            }
+            if (source.getUser() != null) {
+                destination.setEmailAddress(source.getUser().getEmailAddress());
+            }
+            if (source.getUser() != null) {
+                destination.setPhoneNumber(source.getUser().getPhoneNumber());
+            }
+
+            return destination;
+        });
+
+        // Converts User Id to Designer FirstName, LastName, EmailAddress and
+        // PhoneNumber when mapped
+        mapper.createTypeMap(DesignerProfileUpdateDTO.class, Designer.class).setPostConverter(convert -> {
+            DesignerProfileUpdateDTO source = convert.getSource();
+            Designer destination = convert.getDestination();
+
+            if (source.getFirstName() != null) {
+                destination.getUser().setFirstName((source.getFirstName()));
+            }
+            if (source.getLastName() != null) {
+                destination.getUser().setLastName((source.getLastName()));
+            }
+            if (source.getEmailAddress() != null) {
+                destination.getUser().setEmailAddress((source.getEmailAddress()));
+            }
+            if (source.getPhoneNumber() != null) {
+                destination.getUser().setPhoneNumber((source.getPhoneNumber()));
+            }
+
             return destination;
         });
         return mapper;
