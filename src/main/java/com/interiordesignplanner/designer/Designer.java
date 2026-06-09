@@ -48,7 +48,7 @@ public class Designer extends AbstractEntity {
 
     // Creates One to Many Bidirectional relationship with the client entity
     @OneToMany(mappedBy = "designer")
-    @JsonManagedReference
+    @JsonManagedReference("designer-client")
     private List<Client> clients = new ArrayList<>();
 
 }

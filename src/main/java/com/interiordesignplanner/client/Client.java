@@ -55,13 +55,13 @@ public class Client extends AbstractEntity {
 
     // Creates One to Many Bidirectional relationship with the project entity
     @OneToMany(mappedBy = "client")
-    @JsonManagedReference
+    @JsonManagedReference("client-project")
     private List<Project> projects = new ArrayList<>();
 
     // Foreign key to Designer entity, many to one bidirectional relationship.
     @ManyToOne
     @JoinColumn(name = "designer_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonBackReference("designer-client")
     private Designer designer;
 
 }

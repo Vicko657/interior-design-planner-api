@@ -40,7 +40,7 @@ public class Room extends AbstractEntity {
     // Foreign key to Project entity, one to one bidirectional relationship.
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "project_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonBackReference("project-room")
     private Project project;
 
     // Categories the specific type of room
