@@ -1,5 +1,6 @@
 package com.interiordesignplanner.designer;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,28 +10,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DesignerProfileDTO {
 
-    // Designer's id
+    @Schema(description = "Designer's id", example = "8")
     private Long id;
 
-    // Designer's name
+    @Schema(description = "Designer's fullname", example = "Sophie Thompson")
     private String name;
 
-    // Designer's email address
+    @Schema(description = "Designer's email address", example = "sophie.thompson@gmail.com")
     private String emailAddress;
 
-    // Designer's phone number
+    @Schema(description = "Designer's phone number", example = "07554362738")
     private String phoneNumber;
 
-    // Designer's profileImage
+    @Schema(description = "Designer's profile image", example = "/img/sophie.png")
     private String profileImage;
 
-    // Designer's bio
+    @Schema(description = "Designer's bio", example = "I design for the ones who collect, layer and live loudly")
     private String bio;
 
-    // Designer's experience
+    @Schema(description = "Designer's experience", example = "6")
     private Integer experience;
 
-    // Designer's location
+    @Schema(description = "Designer's location", example = "London")
     private String location;
 
 }
