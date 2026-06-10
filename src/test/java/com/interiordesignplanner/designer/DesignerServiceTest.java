@@ -72,11 +72,13 @@ public class DesignerServiceTest {
 
             if (source.getUser() != null) {
                 destination.setName((source.getUser().getFirstName() + " " + source.getUser().getLastName()));
-            }
-            if (source.getUser() != null) {
+
+                destination.setFirstName((source.getUser().getFirstName()));
+
+                destination.setLastName((source.getUser().getLastName()));
+
                 destination.setEmailAddress((source.getUser().getEmailAddress()));
-            }
-            if (source.getUser() != null) {
+
                 destination.setPhoneNumber((source.getUser().getPhoneNumber()));
             }
 

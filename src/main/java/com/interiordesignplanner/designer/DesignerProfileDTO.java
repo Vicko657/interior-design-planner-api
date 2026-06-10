@@ -16,6 +16,12 @@ public class DesignerProfileDTO {
     @Schema(description = "Designer's fullname", example = "Sophie Thompson")
     private String name;
 
+    @Schema(description = "Designer's first name", example = "Sophie")
+    private String firstName;
+
+    @Schema(description = "Designer's last name", example = "Thompson")
+    private String lastName;
+
     @Schema(description = "Designer's email address", example = "sophie.thompson@gmail.com")
     private String emailAddress;
 

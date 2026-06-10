@@ -69,13 +69,15 @@ public class ModelMapperConfig {
             Designer source = convert.getSource();
             DesignerProfileDTO destination = convert.getDestination();
             if (source.getUser() != null) {
-                destination.setName(source.getUser().getFirstName() + " " + source.getUser().getLastName());
-            }
-            if (source.getUser() != null) {
-                destination.setEmailAddress(source.getUser().getEmailAddress());
-            }
-            if (source.getUser() != null) {
-                destination.setPhoneNumber(source.getUser().getPhoneNumber());
+                destination.setName((source.getUser().getFirstName() + " " + source.getUser().getLastName()));
+
+                destination.setFirstName((source.getUser().getFirstName()));
+
+                destination.setLastName((source.getUser().getLastName()));
+
+                destination.setEmailAddress((source.getUser().getEmailAddress()));
+
+                destination.setPhoneNumber((source.getUser().getPhoneNumber()));
             }
 
             return destination;
