@@ -11,6 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.interiordesignplanner.dashboard.DashboardDTO.LatestBudget;
+import com.interiordesignplanner.dashboard.DashboardDTO.ProjectProgress;
+
 /**
  * Repository interface for managing {@link Project} entities.
  * 
@@ -57,6 +60,18 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
      */
     @Query("SELECT new com.interiordesignplanner.project.ProjectSummaryDTO(p.id, CONCAT(c.firstName,' ', c.lastName), p.projectName, p.status, p.budget, p.startDate, p.dueDate, p.description) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY p.id")
     Page<ProjectSummaryDTO> findProjectsByDesignerId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT p.id) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId AND p.status = :status GROUP BY p.id")
+    List<Object[]> findTotalProjectStatus(@Param("userId") Long userId, @Param("status") ProjectStatus status);
+
+    @Query("SELECT COUNT(DISTINCT p.id) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY p.id")
+    List<Object[]> findTotalProjects(@Param("userId") Long userId);
+
+    @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$ProjectProgress(p.projectName, p.status, p.dueDate) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId AND NOT p.status = 'Completed' GROUP BY p.id ORDER BY p.dueDate ASC ")
+    List<ProjectProgress> findProjectProgress(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$LatestBudget(SUM(p.budget), CONCAT(c.firstName,' ', c.lastName)) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY c.id")
+    List<LatestBudget> findClientTotalBudget(@Param("userId") Long userId, Pageable pageable);
 
 }
 
