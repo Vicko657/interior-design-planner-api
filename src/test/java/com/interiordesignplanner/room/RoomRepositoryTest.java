@@ -1,6 +1,7 @@
 package com.interiordesignplanner.room;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -24,6 +25,7 @@ import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.authentication.UserRepository;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientRepository;
+import com.interiordesignplanner.dashboard.DashboardDTO.RecentTasks;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.project.Project;
@@ -216,6 +218,28 @@ public class RoomRepositoryTest {
         // Assert: Verify that the result doesnt return test
         assertNotNull(result);
         assertTrue(result.isEmpty());
+
+    }
+
+    /**
+     * Tests for a list of tasks can be found by their designer id
+     */
+    @Test
+    @DisplayName("FindRecentTasksByDesigner: Finds rooms by type")
+    public void testFindRecentTasksByDesigner_ReturnsTaskList() {
+
+        // Arrange: Prepare pageable with page size
+        Pageable pageable = PageRequest.of(0, 3);
+
+        // Act: Query repository with designer's id and pageable to limit size
+        List<RecentTasks> result = roomRepository.findRecentTasks(designer1.getId(), pageable);
+
+        // Assert: Verify that the result match expected task
+        assertNotNull(result);
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).isCompleted(), false);
+        assertEquals(result.get(0).taskName(), "Flooring");
+        assertEquals(result.get(0).project(), "Luxury Master Bedroom");
 
     }
 

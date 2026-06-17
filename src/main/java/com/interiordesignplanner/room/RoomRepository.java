@@ -6,7 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.interiordesignplanner.dashboard.DashboardDTO.RecentTasks;
 
 /**
  * Repository interface for managing {@link Room} entities.
@@ -26,5 +30,8 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
      *         found, otherwise empty
      */
     Page<Room> findRoomsByType(RoomType type, Pageable pageable);
+
+    @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$RecentTasks(t.taskName, t.completed, p.projectName) FROM Room r JOIN r.checklist t LEFT JOIN r.project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId ORDER BY t.date ASC ")
+    List<RecentTasks> findRecentTasks(@Param("userId") Long userId, Pageable pageable);
 
 }
