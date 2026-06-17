@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.interiordesignplanner.dashboard.DashboardDTO.LatestBudget;
+import com.interiordesignplanner.dashboard.DashboardDTO.CurrentBudget;
 import com.interiordesignplanner.dashboard.DashboardDTO.ProjectProgress;
 
 /**
@@ -70,8 +70,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$ProjectProgress(p.projectName, p.status, p.dueDate) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId AND NOT p.status = 'Completed' GROUP BY p.id ORDER BY p.dueDate ASC ")
     List<ProjectProgress> findProjectProgress(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$LatestBudget(SUM(p.budget), CONCAT(c.firstName,' ', c.lastName)) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY c.id")
-    List<LatestBudget> findClientTotalBudget(@Param("userId") Long userId, Pageable pageable);
+    @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$CurrentBudget(SUM(p.budget), CONCAT(c.firstName,' ', c.lastName)) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY c.id")
+    List<CurrentBudget> findClientTotalBudget(@Param("userId") Long userId, Pageable pageable);
 
 }
 
