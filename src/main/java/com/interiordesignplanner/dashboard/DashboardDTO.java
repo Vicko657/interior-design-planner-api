@@ -35,7 +35,7 @@ public class DashboardDTO {
     private List<RecentTasks> recentTasks;
 
     @Schema(description = "List of client total budget")
-    private List<Budget> budget;
+    private List<CurrentBudget> budget;
 
     public static record ProjectProgress(String projectName, ProjectStatus status, LocalDate date) {
 
@@ -45,7 +45,7 @@ public class DashboardDTO {
 
     }
 
-    public static record Budget(BigDecimal budget, String clientName) {
+    public static record CurrentBudget(BigDecimal budget, String clientName) {
 
     }
 
