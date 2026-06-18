@@ -12,6 +12,7 @@ import com.interiordesignplanner.dashboard.DashboardDTO.ProjectProgress;
 import com.interiordesignplanner.dashboard.DashboardDTO.RecentTasks;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerService;
+import com.interiordesignplanner.exceptions.UserNotFoundException;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
 import com.interiordesignplanner.room.RoomRepository;
@@ -34,6 +35,14 @@ public class DashboardService {
 
     }
 
+    /**
+     * Return the Designer's dashboard
+     * 
+     * 
+     * @param username retrieves the current auth user
+     * @throws UserNotFoundException if the user is not found
+     * @return the designer's dashboard
+     */
     public DashboardDTO getDashboard(String username) {
 
         User user = authenticationService.findUser(username);
@@ -50,6 +59,13 @@ public class DashboardService {
         return dashboard;
     }
 
+    /**
+     * Calculates size of active, completed and total projects
+     * 
+     * @param dashboard  retrieves the DashboardDTO
+     * @param designerId retrieves the current auth designer's id
+     * @return the totals of the designer's active, completed and all projects
+     */
     private void projectCalculations(DashboardDTO dashboard, Long designerId) {
 
         Integer activeNo;
@@ -86,6 +102,13 @@ public class DashboardService {
         dashboard.setTotalProjects(totalNo);
     }
 
+    /**
+     * Returns designer's unfinished projects by due date
+     * 
+     * @param dashboard  retrieves the DashboardDTO
+     * @param designerId retrieves the current auth designer's id
+     * @return the list of projects due
+     */
     private void projectProgress(DashboardDTO dashboard, Long designerId) {
 
         List<ProjectProgress> progressList = projectRepository.findProjectProgress(designerId, PageRequest.of(0, 3));
@@ -93,6 +116,13 @@ public class DashboardService {
         dashboard.setProjectProgress(progressList);
     }
 
+    /**
+     * Return the designer's tasks for projects
+     * 
+     * @param dashboard  retrieves the DashboardDTO
+     * @param designerId retrieves the current auth designer's id
+     * @return the designer's tasks
+     */
     private void recentTasks(DashboardDTO dashboard, Long designerId) {
 
         List<RecentTasks> taskList = roomRepository.findRecentTasks(designerId, PageRequest.of(0, 4));
@@ -100,6 +130,13 @@ public class DashboardService {
         dashboard.setRecentTasks(taskList);
     }
 
+    /**
+     * Return the designers clients current budgets
+     * 
+     * @param dashboard  retrieves the DashboardDTO
+     * @param designerId retrieves the current auth designer's id
+     * @return the clients current budget
+     */
     private void calculateBudget(DashboardDTO dashboard, Long designerId) {
 
         List<CurrentBudget> budgetList = projectRepository.findClientTotalBudget(designerId, PageRequest.of(0, 4));

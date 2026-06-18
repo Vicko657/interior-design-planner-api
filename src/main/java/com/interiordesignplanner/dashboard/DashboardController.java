@@ -12,7 +12,14 @@ import com.interiordesignplanner.security.ApplicationUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * Rest Controller for managing Dashboard view
+ * 
+ * API endpoints to complete CRUD operations.
+ */
+@Tag(name = "Dashboard", description = "Designer's dashboard")
 @RestController
 @RequestMapping("/api/designer")
 public class DashboardController {
