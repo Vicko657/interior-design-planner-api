@@ -243,7 +243,7 @@ public class DashboardControllerTest {
     }
 
     @Test
-    @DisplayName("GetDashboard: Should return authenticated designer's profile")
+    @DisplayName("GetDashboard: Should return authenticated designer's dashboard")
     @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testGetProfile() throws Exception {
 
