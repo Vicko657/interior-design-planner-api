@@ -24,6 +24,8 @@ import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.authentication.UserRepository;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientRepository;
+import com.interiordesignplanner.dashboard.DashboardDTO.CurrentBudget;
+import com.interiordesignplanner.dashboard.DashboardDTO.ProjectProgress;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
 
@@ -233,6 +235,88 @@ public class ProjectRepositoryTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
+    }
+
+    /**
+     * Tests for the total amount of active projects by designer id
+     */
+    @Test
+    @DisplayName("FindTotalProjectStatus: Finds total active projects by Designer")
+    public void testfindTotalProjectStatus_ReturnsActiveProjectsTotal() {
+
+        // Arrange:
+
+        // Act: Query repository with designer's id
+        List<Object[]> result = projectRepository.findTotalProjectStatus(designer1.getId(), ProjectStatus.ACTIVE);
+
+        // Assert: Verify results match expected total
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+
+    }
+
+    /**
+     * Tests for the total amount of projects by designer id
+     */
+    @Test
+    @DisplayName("FindTotalProjects Finds total amount of projects by Designer")
+    public void testfindTotalProjects_ReturnsProjectsTotal() {
+
+        // Arrange:
+
+        // Act: Query repository with designer's id
+        List<Object[]> result = projectRepository.findTotalProjects(designer1.getId());
+
+        // Assert: Verify results match expected total
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+
+    }
+
+    /**
+     * Tests for the list of projects which are not completed by designer id
+     */
+    @Test
+    @DisplayName("FindProjectProgressByDesigner: Finds project progress by Designer")
+    public void testfindProjectProgressByDesigner_ReturnsProjects() {
+
+        // Arrange: Prepare pageable with page size
+        Pageable pageable = PageRequest.of(0, 3);
+
+        // Act: Query repository with designer's id and pageable to limit size
+        List<ProjectProgress> result = projectRepository.findProjectProgress(designer1.getId(), pageable);
+
+        // Assert: Verify results match expected list of projects
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+        assertEquals(result.get(0).projectName(),
+                "Industrial Loft Redesign");
+        assertEquals(result.get(1).status(),
+                ProjectStatus.ACTIVE);
+        assertEquals(result.get(0).date(),
+                LocalDate.of(2026, 01, 25));
+
+    }
+
+    /**
+     * Tests for the total sum of each clients budget by designer id
+     */
+    @Test
+    @DisplayName("FindLatestBudgetByDesigner: Finds clients latest budget by Designer")
+    public void testfindLatestBudgetByDesigner_ReturnsProjects() {
+
+        // Arrange: Prepare pageable with page size
+        Pageable pageable = PageRequest.of(0, 1);
+
+        // Act: Query repository with designer's id and pageable to limit size
+        List<CurrentBudget> result = projectRepository.findClientTotalBudget(designer1.getId(), pageable);
+
+        // Assert: Verify results match expected budget
+        assertNotNull(result);
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).budget(), new BigDecimal("25000.00"));
+        assertEquals(result.get(0).clientName(),
+                "Alex Price");
     }
 
 }
