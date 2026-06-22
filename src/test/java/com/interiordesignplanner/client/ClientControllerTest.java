@@ -180,7 +180,7 @@ public class ClientControllerTest {
         // Given
 
         // When/Then
-        mockMvc.perform(get("/api/admin/clients/{id}", client1.getId())
+        mockMvc.perform(get("/api/clients/{id}", client1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
@@ -194,7 +194,7 @@ public class ClientControllerTest {
     void testGetClientById_NotFound() throws Exception {
         // Given
         // When/Then
-        mockMvc.perform(get("/api/admin/clients/199")
+        mockMvc.perform(get("/api/clients/199")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Client is not found with clientId: 199")));

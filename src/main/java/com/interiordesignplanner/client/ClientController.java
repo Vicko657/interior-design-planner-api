@@ -88,8 +88,8 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client with id was found"),
             @ApiResponse(responseCode = "404", description = "Client doesn't exist") })
-    @GetMapping(value = "/admin/clients/{id}", produces = "application/json")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/clients/{id}", produces = "application/json")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER')")
     public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
 
         ClientDTO client = clientService.getClientById(id);

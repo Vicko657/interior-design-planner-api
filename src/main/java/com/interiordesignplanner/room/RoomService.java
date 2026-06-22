@@ -122,7 +122,7 @@ public class RoomService {
      * @param id room's unique identifier
      * @throws RoomNotFoundException if the room is not found
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public RoomDTO getRoomById(Long id) {
 
         Room room = findRoom(id);

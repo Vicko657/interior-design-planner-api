@@ -88,8 +88,8 @@ public class ProjectController {
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Project with id was found"),
                         @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
-        @GetMapping(value = "admin/projects/{projectId}", produces = "application/json")
-        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping(value = "/projects/{projectId}", produces = "application/json")
+        @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
         public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long projectId) {
 
                 ProjectDTO project = projectService.getProjectById(projectId);

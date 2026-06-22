@@ -55,8 +55,8 @@ public class RoomController {
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Room with id was found"),
                         @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
-        @GetMapping(value = "/admin/rooms/{id}", produces = "application/json")
-        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping(value = "/rooms/{id}", produces = "application/json")
+        @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
         public ResponseEntity<RoomDTO> getRoomById(@PathVariable Long id) {
 
                 RoomDTO room = roomService.getRoomById(id);

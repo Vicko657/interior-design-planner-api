@@ -285,7 +285,7 @@ public class RoomControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetRoomById() throws Exception {
 
-                mockMvc.perform(get("/api/admin/rooms/{id}", room2
+                mockMvc.perform(get("/api/rooms/{id}", room2
                                 .getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
@@ -302,7 +302,7 @@ public class RoomControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetRoomById_NotFound() throws Exception {
 
-                mockMvc.perform(get("/api/admin/rooms/80")
+                mockMvc.perform(get("/api/rooms/80")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.message", is("Room is not found with roomId: 80")));
