@@ -184,7 +184,7 @@ public class ProjectService {
 
         Client existingClient = clientService.findClient(clientId);
 
-        findProjectByDesigner(existingClient, username);
+        findClientByDesigner(existingClient, username);
 
         if (projectCreateDTO == null && clientId == null) {
             throw new IllegalArgumentException("Project must not be null");
@@ -219,7 +219,7 @@ public class ProjectService {
 
         Client existingClient = clientService.findClient(existingProject.getClient().getId());
 
-        findProjectByDesigner(existingClient, username);
+        findClientByDesigner(existingClient, username);
 
         // Updated Project Status to COMPLETED, sets completedAt field
         if (existingProject.getStatus() == ProjectStatus.COMPLETED
@@ -248,7 +248,7 @@ public class ProjectService {
         Project project = findProject(id);
         Client existingClient = clientService.findClient(project.getClient().getId());
 
-        findProjectByDesigner(existingClient, username);
+        findClientByDesigner(existingClient, username);
 
         projectRepository.delete(project);
     }
@@ -271,7 +271,7 @@ public class ProjectService {
         Project existingProject = findProject(projectId);
         Client client = clientService.findClient(clientId);
 
-        findProjectByDesigner(client, username);
+        findClientByDesigner(client, username);
 
         if (existingProject == null || client == null) {
             throw new ProjectNotFoundException("projectId", projectId);
@@ -312,7 +312,7 @@ public class ProjectService {
                 .orElseThrow(() -> new ProjectNotFoundException("projectId", id));
     }
 
-    public void findProjectByDesigner(Client existingClient, String username) {
+    public void findClientByDesigner(Client existingClient, String username) {
 
         User user = authenticationService.findUser(username);
         Designer designer = designerService.findDesigner(user.getId());
