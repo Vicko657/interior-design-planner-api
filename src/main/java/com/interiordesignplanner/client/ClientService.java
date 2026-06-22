@@ -114,7 +114,7 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return client
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public ClientDTO getClientById(Long id) {
 
         Client client = findClient(id);
