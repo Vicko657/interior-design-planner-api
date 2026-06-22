@@ -207,7 +207,7 @@ public class ProjectControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetProjectById() throws Exception {
 
-                mockMvc.perform(get("/api/admin/projects/{id}", project1.getId())
+                mockMvc.perform(get("/api/projects/{id}", project1.getId())
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").exists())
@@ -223,7 +223,7 @@ public class ProjectControllerTest {
         @WithMockUser(roles = "ADMIN")
         void testGetProjectById_NotFound() throws Exception {
 
-                mockMvc.perform(get("/api/admin/projects/33")
+                mockMvc.perform(get("/api/projects/33")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.message", is("Project is not found with projectId: 33")));

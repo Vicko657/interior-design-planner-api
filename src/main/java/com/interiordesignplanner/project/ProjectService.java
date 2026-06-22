@@ -114,7 +114,7 @@ public class ProjectService {
      * @param id project's unique identifier
      * @throws ProjectNotFoundException if the project is not found
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public ProjectDTO getProjectById(Long id) {
 
         Project project = findProject(id);
