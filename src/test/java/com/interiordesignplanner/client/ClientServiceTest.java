@@ -403,6 +403,11 @@ public class ClientServiceTest {
         updatedClient.setPhoneNumber("07829596562");
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client2));
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
+
         when(clientRepository.save(client2)).thenReturn(client2);
 
         // Act: Query the service layer to return the client with the id and update the

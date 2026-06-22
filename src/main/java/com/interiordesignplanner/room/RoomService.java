@@ -8,6 +8,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.mapper.RoomMapper;
@@ -39,11 +43,20 @@ public class RoomService {
     // Room Mapper
     private final RoomMapper roomMapper;
 
+    // User Service
+    private final AuthenticationService authenticationService;
+
+    // Designer Service
+    private final DesignerService designerService;
+
     // Constructor
-    public RoomService(RoomRepository roomRepository, ProjectService projectService, RoomMapper roomMapper) {
+    public RoomService(RoomRepository roomRepository, ProjectService projectService, RoomMapper roomMapper,
+            AuthenticationService authenticationService, DesignerService designerService) {
         this.roomRepository = roomRepository;
         this.projectService = projectService;
         this.roomMapper = roomMapper;
+        this.authenticationService = authenticationService;
+        this.designerService = designerService;
 
     }
 
@@ -143,9 +156,8 @@ public class RoomService {
 
         Project project = projectService.findProject(projectId);
 
-        if (project.getClient().getDesigner().getUser().getUsername() != username) {
-            throw new AccessDeniedException("User does not have authorization");
-        }
+        findProjectByDesigner(project, username);
+
         roomCreateDTO.setProject(project);
         Room room = roomMapper.toEntity(roomCreateDTO);
         project.setRoom(room);
@@ -221,7 +233,7 @@ public class RoomService {
         Room existingRoom = findRoom(roomId);
         Project project = projectService.findProject(projectId);
 
-        findRoomByDesigner(existingRoom, username);
+        findProjectByDesigner(project, username);
 
         if (existingRoom == null || project == null) {
             throw new RoomNotFoundException("roomId", roomId);
@@ -386,11 +398,25 @@ public class RoomService {
                 .orElseThrow(() -> new RoomNotFoundException("roomId", id));
     }
 
+    public void findProjectByDesigner(Project existingProject, String username) {
+
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
+
+        if (existingProject.getClient().getDesigner().getId() != designer.getId()) {
+            throw new AccessDeniedException("User does not have authorization");
+        }
+
+    }
+
     public void findRoomByDesigner(Room existingRoom, String username) {
 
         Project existingProject = projectService.findProject(existingRoom.getProject().getId());
 
-        if (existingProject.getClient().getDesigner().getUser().getUsername() != username) {
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
+
+        if (existingProject.getClient().getDesigner().getId() != designer.getId()) {
             throw new AccessDeniedException("User does not have authorization");
         }
 

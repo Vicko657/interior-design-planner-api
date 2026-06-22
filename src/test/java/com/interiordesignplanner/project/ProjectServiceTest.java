@@ -419,6 +419,9 @@ public class ProjectServiceTest {
         savedProject.setDueDate(LocalDate.of(2026, 01, 25));
 
         when(clientService.findClient(1L)).thenReturn(client1);
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(projectRepository.save(any(Project.class))).thenReturn(savedProject);
 
         // Act: Query the service layer the if Project is there
@@ -445,6 +448,10 @@ public class ProjectServiceTest {
         updatedProject.setStatus(ProjectStatus.ACTIVE);
 
         when(clientService.findClient(1L)).thenReturn(client1);
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project2));
         when(projectRepository.save(project2)).thenReturn(project2);
@@ -498,7 +505,9 @@ public class ProjectServiceTest {
         when(clientService.findClient(1L)).thenReturn(client1);
         Long projectId = 2L;
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project2));
+        when(authenticationService.findUser("sam")).thenReturn(user);
 
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         // Act: Query the service layer to return the Project with the id and delete the
         // Project
         projectService.deleteProject(projectId, user.getUsername());

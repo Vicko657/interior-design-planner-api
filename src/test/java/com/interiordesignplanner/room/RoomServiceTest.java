@@ -37,10 +37,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.Roles;
 import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
@@ -72,6 +74,12 @@ public class RoomServiceTest {
     // Mock room service
     @InjectMocks
     private RoomService roomService;
+
+    @Mock
+    private AuthenticationService authenticationService;
+
+    @Mock
+    private DesignerService designerService;
 
     // Mock project service
     @Mock
@@ -116,7 +124,8 @@ public class RoomServiceTest {
         });
 
         roomMapper = new RoomMapper(modelMapper);
-        roomService = new RoomService(roomRepository, projectService, roomMapper);
+        roomService = new RoomService(roomRepository, projectService, roomMapper, authenticationService,
+                designerService);
 
         user = new User();
         user.setId(1L);
@@ -412,6 +421,9 @@ public class RoomServiceTest {
         savedRoom.setUnit("m");
 
         when(projectService.findProject(7L)).thenReturn(project1);
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(any(Room.class))).thenReturn(savedRoom);
 
         // Act: Query the service layer the if room is there
@@ -439,6 +451,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(2L)).thenReturn(project2);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(any(Room.class))).thenReturn(room2);
 
         // Act: Query the service layer to return the Room with the id and update the
@@ -489,6 +504,9 @@ public class RoomServiceTest {
         // Arrange: Sets the roomId and mocks the repository
         Long roomId = 2L;
         when(projectService.findProject(2L)).thenReturn(project2);
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
 
         // Act: Query the service layer to return the Room with the id and delete the
@@ -541,6 +559,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new task, saves room
@@ -571,6 +592,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(2L)).thenReturn(project2);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room2)).thenReturn(room2);
 
         // Act: Query the service layer the if room exists, adds a new task, saves room
@@ -597,6 +621,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer to return the Room with the id and delete the
@@ -633,6 +660,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new item, saves room
@@ -664,6 +694,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer the if room exists, adds a new item, saves room
@@ -690,6 +723,9 @@ public class RoomServiceTest {
 
         when(projectService.findProject(1L)).thenReturn(project1);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
         when(roomRepository.save(room1)).thenReturn(room1);
 
         // Act: Query the service layer to return the Room with the id and delete the
