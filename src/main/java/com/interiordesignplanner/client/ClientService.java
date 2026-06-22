@@ -164,7 +164,10 @@ public class ClientService {
 
         Client existingClient = findClient(id);
 
-        if (existingClient.getDesigner().getUser().getUsername() != username) {
+        User user = authenticationService.findUser(username);
+        Designer designer = designerService.findDesigner(user.getId());
+
+        if (existingClient.getDesigner().getId() != designer.getId()) {
             throw new AccessDeniedException("User does not have authorization");
         }
 
