@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.User;
@@ -43,6 +44,7 @@ public class DashboardService {
      * @throws UserNotFoundException if the user is not found
      * @return the designer's dashboard
      */
+    @Transactional(readOnly = true)
     public DashboardDTO getDashboard(String username) {
 
         User user = authenticationService.findUser(username);

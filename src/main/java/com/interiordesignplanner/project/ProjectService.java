@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.User;
@@ -20,7 +21,6 @@ import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.mapper.ProjectMapper;
 
 import io.github.perplexhub.rsql.RSQLJPASupport;
-import jakarta.transaction.Transactional;
 
 /**
  * Project service class handles business logic and operations to help manage
@@ -67,6 +67,7 @@ public class ProjectService {
     /**
      * Returns all projects on the system and their room.
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public Page<ProjectDTO> getAllProjects(String filter, Pageable pageable) {
 
@@ -93,6 +94,7 @@ public class ProjectService {
      * @throws DesignerNotFoundException if the designer is not found
      * @return logged in designer's list of projects
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<ProjectSummaryDTO> getProjectsByDesigner(String username, Pageable pageable) {
 
@@ -114,6 +116,7 @@ public class ProjectService {
      * @param id project's unique identifier
      * @throws ProjectNotFoundException if the project is not found
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public ProjectDTO getProjectById(Long id) {
 
@@ -135,6 +138,7 @@ public class ProjectService {
      * @param status project status enum
      * @returns projects with same status
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<ProjectDTO> getProjectsByStatus(ProjectStatus status, Pageable pageable) {
 
@@ -162,6 +166,7 @@ public class ProjectService {
      * 
      * @returns order by due date
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<Deadline> sortsProjectsByDueDate(Pageable pageable) {
         return projectRepository.getAllProjectsOrderByDueDate(pageable);
@@ -179,6 +184,7 @@ public class ProjectService {
      * @param clientId client's unique identifier
      * @throws IllegalArgumentException the project fields are null
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public ProjectDTO createProject(ProjectCreateDTO projectCreateDTO, Long clientId, String username) {
 
@@ -212,6 +218,7 @@ public class ProjectService {
      * @param project project object to be updated
      * @return updated project
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public ProjectDTO updateProject(Long id, ProjectUpdateDTO projectUpdateDTO, String username) {
 
@@ -243,6 +250,7 @@ public class ProjectService {
      * @param id project's unique identifier
      * @return project is deleted
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public void deleteProject(Long id, String username) {
         Project project = findProject(id);
@@ -266,6 +274,7 @@ public class ProjectService {
      * @param projectId project's unique identifier
      * @return project is reassigned
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public ProjectDTO reassignClient(Long clientId, Long projectId, String username) {
         Project existingProject = findProject(projectId);

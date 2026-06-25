@@ -63,6 +63,7 @@ public class RoomService {
     /**
      * Returns all rooms created for projects on the system.
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public Page<RoomDTO> getAllRooms(String filter, Pageable pageable) {
 
@@ -95,6 +96,7 @@ public class RoomService {
      * @returns rooms with same type
      * @throws RoomNotFoundException if the room type is not found
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<RoomDTO> getRoomsByType(RoomType type, Pageable pageable, String username) {
 
@@ -122,6 +124,7 @@ public class RoomService {
      * @param id room's unique identifier
      * @throws RoomNotFoundException if the room is not found
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public RoomDTO getRoomById(Long id) {
 
@@ -179,6 +182,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return updates room
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO updateRoom(Long id, RoomUpdateDTO roomUpdateDTO, String username) {
 
@@ -202,6 +206,7 @@ public class RoomService {
      * @return deletes room details
      * @throws RoomNotFoundException if the room doesnt exist
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public void deleteRoom(Long id, String username) {
 
@@ -227,6 +232,7 @@ public class RoomService {
      * @throws ProjectNotFoundException if the project doesn't exist
      * @return room is reassigned
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO reassignProject(Long projectId, Long roomId, String username) {
 
@@ -255,6 +261,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO addTask(Long roomId, Task task, String username) {
 
@@ -280,6 +287,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated task is added to the checklist
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO editTask(Long roomId, Task updateTask, int index, String username) {
 
@@ -302,6 +310,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public void deleteTask(Long roomId, int index, String username) {
 
@@ -324,6 +333,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room, with a new item on the list
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO addItem(Long roomId, Item item, String username) {
 
@@ -350,6 +360,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated item is added to the inventory
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public RoomDTO editItem(Long roomId, Item updateItem, int index, String username) {
 
@@ -372,6 +383,7 @@ public class RoomService {
      * @throws RoomNotFoundException if the room is not found
      * @return the updated room
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public void deleteItem(Long roomId, int index, String username) {
 
@@ -398,6 +410,7 @@ public class RoomService {
                 .orElseThrow(() -> new RoomNotFoundException("roomId", id));
     }
 
+    @Transactional
     public void findProjectByDesigner(Project existingProject, String username) {
 
         User user = authenticationService.findUser(username);
@@ -409,6 +422,7 @@ public class RoomService {
 
     }
 
+    @Transactional
     public void findRoomByDesigner(Room existingRoom, String username) {
 
         Project existingProject = projectService.findProject(existingRoom.getProject().getId());

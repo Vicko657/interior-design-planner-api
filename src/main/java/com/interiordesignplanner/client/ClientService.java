@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.User;
@@ -66,6 +67,7 @@ public class ClientService {
      * 
      * @return all clients on the system
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public Page<ClientDTO> getAllClients(String filter, Pageable pageable) {
 
@@ -93,6 +95,7 @@ public class ClientService {
      * @throws DesignerNotFoundException if the designer is not found
      * @return logged in designer's list of clients
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public Page<ClientSummaryDTO> getClientsByDesigner(String username, Pageable pageable) {
 
@@ -114,6 +117,7 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return client
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasAnyRole('ADMIN','DESIGNER')")
     public ClientDTO getClientById(Long id) {
 
@@ -133,6 +137,7 @@ public class ClientService {
      * @param ClientCreateDTO the client object is created
      * @return client with a generated unique Id
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public ClientDTO createClient(ClientCreateDTO clientCreateDTO, String username) {
 
@@ -159,6 +164,7 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return the updated client object
      */
+    @Transactional
     @PreAuthorize("hasRole('DESIGNER')")
     public ClientDTO updateClient(Long id, ClientUpdateDTO clientUpdateDTO, String username) {
 
@@ -187,6 +193,7 @@ public class ClientService {
      * @throws ClientNotFoundException if the client is not found
      * @return client is removed
      */
+    @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteClient(Long id) {
 

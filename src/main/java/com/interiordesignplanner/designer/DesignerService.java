@@ -32,6 +32,7 @@ public class DesignerService {
      * @throws UserNotFoundException if the user is not found
      * @return the designer's profile
      */
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
     public DesignerProfileDTO getProfile(String username) {
         User authUser = userRepository.findByUsername(username)

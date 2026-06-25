@@ -35,6 +35,7 @@ import jakarta.transaction.Transactional;
  * </p>
  */
 @Service
+@Transactional
 public class AuthenticationService {
 
     private final DesignerRepository designerRepository;
