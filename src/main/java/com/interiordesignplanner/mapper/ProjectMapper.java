@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectCreateDTO;
 import com.interiordesignplanner.project.ProjectDTO;
+import com.interiordesignplanner.project.ProjectSummaryDTO;
 import com.interiordesignplanner.project.ProjectUpdateDTO;
 
 import lombok.AllArgsConstructor;
@@ -30,6 +31,11 @@ public class ProjectMapper {
 
     public void updateEntity(ProjectUpdateDTO projectUpdateDTO, Project project) {
         modelMapper.map(projectUpdateDTO, project);
+    }
+
+    public ProjectSummaryDTO toSummaryDto(Project entity) {
+        ProjectSummaryDTO dto = modelMapper.map(entity, ProjectSummaryDTO.class);
+        return dto;
     }
 
 }
