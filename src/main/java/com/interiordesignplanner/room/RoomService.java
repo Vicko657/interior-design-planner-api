@@ -1,5 +1,7 @@
 package com.interiordesignplanner.room;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -408,6 +410,24 @@ public class RoomService {
     public Room findRoom(Long id) {
         return roomRepository.findById(id)
                 .orElseThrow(() -> new RoomNotFoundException("roomId", id));
+    }
+
+    /**
+     * Retrieved the Inventory's total
+     * 
+     * 
+     * @param id retrieves the room
+     * @return the inventory's total
+     */
+    public BigDecimal calculateTotalInventory(Long id) {
+
+        BigDecimal total = roomRepository.findTotalInventory(id);
+
+        if (total == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return total;
     }
 
     @Transactional
