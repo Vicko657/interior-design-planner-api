@@ -1,8 +1,9 @@
-package com.interiordesignplanner.project;
+package com.interiordesignplanner.projectsummary;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.interiordesignplanner.project.ProjectStatus;
 import com.interiordesignplanner.room.RoomType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
