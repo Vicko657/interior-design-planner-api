@@ -1,5 +1,6 @@
 package com.interiordesignplanner.room;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -33,5 +34,8 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
 
     @Query("SELECT new com.interiordesignplanner.dashboard.DashboardDTO$RecentTasks(t.taskName, t.completed, p.projectName) FROM Room r JOIN r.checklist t LEFT JOIN r.project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId ORDER BY t.date ASC ")
     List<RecentTasks> findRecentTasks(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT SUM(i.price * i.quantity) FROM Room r JOIN r.inventory i WHERE r.id = :roomId")
+    BigDecimal findTotalInventory(@Param("roomId") Long roomId);
 
 }

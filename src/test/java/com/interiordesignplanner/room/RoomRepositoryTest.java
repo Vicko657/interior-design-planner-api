@@ -243,4 +243,20 @@ public class RoomRepositoryTest {
 
     }
 
+    /**
+     * Tests for total sum of list of inventory
+     */
+    @Test
+    @DisplayName("FindTotalInventory: Total Sum")
+    public void testFindTotalInventory_ReturnsTotalSum() {
+
+        // Act: Query repository with designer's id and pageable to limit size
+        BigDecimal result = roomRepository.findTotalInventory(room.getId());
+
+        // Assert: Verify that the result match expected task
+        assertNotNull(result);
+        assertEquals(result, BigDecimal.valueOf(119.99));
+
+    }
+
 }
