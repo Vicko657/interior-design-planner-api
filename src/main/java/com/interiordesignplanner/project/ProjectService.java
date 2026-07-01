@@ -19,6 +19,7 @@ import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.mapper.ProjectMapper;
+import com.interiordesignplanner.room.RoomService;
 
 import io.github.perplexhub.rsql.RSQLJPASupport;
 
@@ -96,7 +97,7 @@ public class ProjectService {
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
-    public Page<ProjectSummaryDTO> getProjectsByDesigner(String username, Pageable pageable) {
+    public Page<ProjectDTO> getProjectsByDesigner(String username, Pageable pageable) {
 
         User user = authenticationService.findUser(username);
         Designer designer = designerService.findDesigner(user.getId());

@@ -195,17 +195,17 @@ public class ProjectRepositoryTest {
     }
 
     /**
-     * Tests if the Project can be found by their assigned client's, designer id
+     * Tests if the projects can be found by their assigned client's, designer id
      */
     @Test
-    @DisplayName("FindByDesigner: Finds project by Designer")
+    @DisplayName("FindByDesigner: Finds projects by Designer")
     public void testfindByDesigner_ReturnsProjects() {
 
         // Arrange: Prepare pageable with page size
         Pageable pageable = PageRequest.of(0, 3);
 
         // Act: Query repository with designer's id
-        Page<ProjectSummaryDTO> result = projectRepository.findProjectsByDesignerId(designer1.getId(), pageable);
+        Page<ProjectDTO> result = projectRepository.findProjectsByDesignerId(designer1.getId(), pageable);
 
         // Assert: Verify results match expected clients
         assertNotNull(result);
@@ -217,7 +217,7 @@ public class ProjectRepositoryTest {
     }
 
     /**
-     * Tests when the Project isnt found by Designer and returns a empty set
+     * Tests when the projects not found by Designer and returns a empty set
      */
     @Test
     @DisplayName("FindByDesigner: Projects not found by designer")
@@ -229,7 +229,7 @@ public class ProjectRepositoryTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // Act: Query the repository with the designer2Id and pageable
-        Page<ProjectSummaryDTO> result = projectRepository.findProjectsByDesignerId(designer2.getId(), pageable);
+        Page<ProjectDTO> result = projectRepository.findProjectsByDesignerId(designer2.getId(), pageable);
 
         // Assert: Verifies result's page is empty
         assertNotNull(result);

@@ -65,12 +65,12 @@ public class ProjectController {
          * @return all project entities on the system
          * @response 200 if all projects are found
          */
-        @Operation(summary = "Retrieves all projects", description = "Retrieves all the projects details, including their status, duedate, client and other details")
+        @Operation(summary = "Returns all projects", description = "Returns all the designers projects")
         @ApiResponse(responseCode = "200", description = "All projects are found")
         @ResponseStatus(HttpStatus.OK)
         @GetMapping(value = "/projects", produces = "application/json")
         @PreAuthorize("hasRole('DESIGNER')")
-        public Page<ProjectSummaryDTO> getProjects(
+        public Page<ProjectDTO> getDesignersProjects(
                         @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails,
                         Pageable pageable) {
                 return projectService.getProjectsByDesigner(applicationUserDetails.getUsername(), pageable);
