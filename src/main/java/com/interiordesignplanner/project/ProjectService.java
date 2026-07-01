@@ -19,7 +19,6 @@ import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.ProjectNotFoundException;
 import com.interiordesignplanner.mapper.ProjectMapper;
-import com.interiordesignplanner.room.RoomService;
 
 import io.github.perplexhub.rsql.RSQLJPASupport;
 
