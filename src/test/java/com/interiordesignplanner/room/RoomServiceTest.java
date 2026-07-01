@@ -738,6 +738,63 @@ public class RoomServiceTest {
 
     }
 
+    /**
+     * Tests total calculation of inventory
+     */
+    @Test
+    @DisplayName("CalculateTotalInventory: Returns total inventory sum")
+    public void testCalculateTotalInventory_ReturnsTotalSum() {
+        // Arrange: Sets the roomId, items and mocks the repository
+
+        Item item4 = new Item();
+        Item item5 = new Item();
+
+        item4.setPrice(BigDecimal.valueOf(29.99));
+        item5.setPrice(BigDecimal.valueOf(4.99));
+        item4.setQuantity(1);
+        item5.setQuantity(2);
+        item4.setOrdered(true);
+        item5.setOrdered(true);
+
+        inventory1.add(item4);
+        inventory1.add(item5);
+
+        Long roomId = 1L;
+
+        when(roomRepository.findTotalInventory(roomId)).thenReturn(BigDecimal.valueOf(439.72));
+
+        // Act: Query the service layer to return the total calculation of the inventory
+        BigDecimal result = roomService.calculateTotalInventory(roomId);
+
+        // Assert: Verifies that the result is not null and a room total is £439.72
+        assertNotNull(result);
+        assertThat(result).isEqualTo(BigDecimal.valueOf(439.72));
+    }
+
+    /**
+     * Tests total calculation of inventory with empty list
+     */
+    @Test
+    @DisplayName("CalculateTotalInventory: Returns ZERO")
+    public void testCalculateTotalInventory_ReturnsZERO() {
+        // Arrange: Sets the room, inventory and mocks the repository
+
+        List<Item> inventory3 = new ArrayList<>();
+
+        Room room4 = new Room();
+        room4.setId(5L);
+        room4.setInventory(inventory3);
+
+        when(roomRepository.findTotalInventory(room4.getId())).thenReturn(BigDecimal.ZERO);
+
+        // Act: Query the service layer to return the total calculation of the inventory
+        BigDecimal result = roomService.calculateTotalInventory(room4.getId());
+
+        // Assert: Verifies that the result is not null and a room total is zero
+        assertNotNull(result);
+        assertThat(result).isEqualTo(BigDecimal.ZERO);
+    }
+
     // Reset all mock objects
     @AfterEach
     public void tearDown() {

@@ -58,8 +58,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
      * @param pageable pagination info
      * @return paginated list of clients
      */
-    @Query("SELECT new com.interiordesignplanner.project.ProjectSummaryDTO(p.id, CONCAT(c.firstName,' ', c.lastName), p.projectName, p.status, p.budget, p.startDate, p.dueDate, p.description) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY p.id")
-    Page<ProjectSummaryDTO> findProjectsByDesignerId(@Param("userId") Long userId, Pageable pageable);
+    @Query("SELECT new com.interiordesignplanner.project.ProjectDTO(p.id, CONCAT(c.firstName,' ', c.lastName), p.projectName, p.status, p.budget, p.startDate, p.dueDate, p.meetingURL, p.description, p.completedAt, r.type ) FROM Project p LEFT JOIN p.room r LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId GROUP BY p.id")
+    Page<ProjectDTO> findProjectsByDesignerId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT COUNT(DISTINCT p.id) FROM Project p LEFT JOIN p.client c LEFT JOIN c.designer d LEFT JOIN d.user u WHERE c.designer.id = :userId AND p.status = :status GROUP BY p.id")
     List<Object[]> findTotalProjectStatus(@Param("userId") Long userId, @Param("status") ProjectStatus status);

@@ -12,6 +12,7 @@ import com.interiordesignplanner.designer.DesignerProfileDTO;
 import com.interiordesignplanner.designer.DesignerProfileUpdateDTO;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectDTO;
+import com.interiordesignplanner.projectsummary.ProjectSummaryDTO;
 import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomDTO;
 
@@ -26,7 +27,7 @@ public class ModelMapperConfig {
                 .setSkipNullEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
 
-        // Converts Project Id to Project Name when mapped
+        // Converts Client Id to Designer Full Name and TotalProjects when mapped
         mapper.createTypeMap(Client.class, ClientDTO.class).setPostConverter(convert -> {
             Client source = convert.getSource();
             ClientDTO destination = convert.getDestination();
@@ -100,6 +101,29 @@ public class ModelMapperConfig {
             }
             if (source.getPhoneNumber() != null) {
                 destination.getUser().setPhoneNumber((source.getPhoneNumber()));
+            }
+
+            return destination;
+        });
+
+        // Converts Project Id to Client and Room details when mapped
+        mapper.createTypeMap(Project.class, ProjectSummaryDTO.class).setPostConverter(convert -> {
+            Project source = convert.getSource();
+            ProjectSummaryDTO destination = convert.getDestination();
+
+            if (source.getClient() != null) {
+                destination.setClientId(source.getClient().getId());
+                destination.setClientName(source.getClient().getFirstName() + " " + source.getClient()
+                        .getLastName());
+            }
+
+            if (source.getRoom() != null) {
+                destination.setHeight(source.getRoom().getHeight());
+                destination.setLength(source.getRoom().getLength());
+                destination.setWidth(source.getRoom().getWidth());
+                destination.setUnit(source.getRoom().getUnit());
+                destination.setRoomId(source.getRoom().getId());
+                destination.setRoom(source.getRoom().getType());
             }
 
             return destination;

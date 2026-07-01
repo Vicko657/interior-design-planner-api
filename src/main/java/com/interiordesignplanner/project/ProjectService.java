@@ -96,7 +96,7 @@ public class ProjectService {
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
-    public Page<ProjectSummaryDTO> getProjectsByDesigner(String username, Pageable pageable) {
+    public Page<ProjectDTO> getProjectsByDesigner(String username, Pageable pageable) {
 
         User user = authenticationService.findUser(username);
         Designer designer = designerService.findDesigner(user.getId());
