@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectCreateDTO;
 import com.interiordesignplanner.project.ProjectDTO;
-import com.interiordesignplanner.project.ProjectSummaryDTO;
 import com.interiordesignplanner.project.ProjectUpdateDTO;
+import com.interiordesignplanner.projectsummary.ProjectSummaryDTO;
 
 import lombok.AllArgsConstructor;
 

@@ -12,7 +12,7 @@ import com.interiordesignplanner.designer.DesignerProfileDTO;
 import com.interiordesignplanner.designer.DesignerProfileUpdateDTO;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectDTO;
-import com.interiordesignplanner.project.ProjectSummaryDTO;
+import com.interiordesignplanner.projectsummary.ProjectSummaryDTO;
 import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomDTO;
 
