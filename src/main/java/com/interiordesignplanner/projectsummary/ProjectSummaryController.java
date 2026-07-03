@@ -14,6 +14,7 @@ import com.interiordesignplanner.security.ApplicationUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -34,10 +35,13 @@ public class ProjectSummaryController {
      * GET: Returns Project Summary
      * 
      * @return specific project details
-     * @response 200 if project is found
+     * @response 200 if project was successfully found
+     * @response 404 Not found is the project doesnt exist
      */
     @Operation(summary = "Returns project summary", description = "Returns the projects details including room details")
-    @ApiResponse(responseCode = "200", description = "All projects are found")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Project with id was found"),
+            @ApiResponse(responseCode = "404", description = "Project doesn't exist") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/{projectId}/summary", produces = "application/json")
     @PreAuthorize("hasRole('DESIGNER')")
