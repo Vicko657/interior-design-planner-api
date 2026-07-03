@@ -39,7 +39,7 @@ public class ProjectSummaryController {
     @Operation(summary = "Returns project summary", description = "Returns the projects details including room details")
     @ApiResponse(responseCode = "200", description = "All projects are found")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/projectsummary/{projectId}", produces = "application/json")
+    @GetMapping(value = "/{projectId}/summary", produces = "application/json")
     @PreAuthorize("hasRole('DESIGNER')")
     public ProjectSummaryDTO getProjectSummary(
             @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails,
