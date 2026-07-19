@@ -34,6 +34,7 @@ import com.interiordesignplanner.designer.DesignerRepository;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
+import com.interiordesignplanner.task.Task;
 
 import org.springframework.transaction.annotation.Transactional;
 

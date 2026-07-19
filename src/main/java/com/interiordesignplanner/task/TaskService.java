@@ -10,7 +10,7 @@ import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomDTO;
 import com.interiordesignplanner.room.RoomRepository;
 import com.interiordesignplanner.room.RoomService;
-import com.interiordesignplanner.room.Task;
+import com.interiordesignplanner.task.Task;
 
 @Service
 public class TaskService {

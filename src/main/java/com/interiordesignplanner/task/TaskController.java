@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.interiordesignplanner.room.RoomDTO;
-import com.interiordesignplanner.room.Task;
+import com.interiordesignplanner.task.Task;
 import com.interiordesignplanner.security.ApplicationUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;

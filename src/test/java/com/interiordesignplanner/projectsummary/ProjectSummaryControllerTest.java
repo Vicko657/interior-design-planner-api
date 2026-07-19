@@ -38,7 +38,7 @@ import com.interiordesignplanner.room.Item;
 import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomRepository;
 import com.interiordesignplanner.room.RoomType;
-import com.interiordesignplanner.room.Task;
+import com.interiordesignplanner.task.Task;
 
 @SpringBootTest
 @AutoConfigureMockMvc
