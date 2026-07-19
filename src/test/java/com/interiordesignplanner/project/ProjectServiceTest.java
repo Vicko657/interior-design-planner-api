@@ -276,57 +276,34 @@ public class ProjectServiceTest {
         // if
         // all the designer's projects are returned
 
-        ProjectDTO projectDTO1 = new ProjectDTO();
-        ProjectDTO projectDTO2 = new ProjectDTO();
+        String filter = "";
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        // Created mock Projects
+        List<Project> projects = new ArrayList<>();
+        projects.add(project1);
+        projects.add(project2);
 
-        projectDTO1.setId(1L);
-        projectDTO1.setClientName(client1.getFirstName() + " " + client1.getLastName());
-        projectDTO1.setProjectName("Industrial Loft Redesign");
-        projectDTO1.setStatus(ProjectStatus.PLANNING);
-        projectDTO1.setBudget(BigDecimal.valueOf(20000.00));
-        projectDTO1.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
-        projectDTO1.setMeetingURL("https://meet.google.com/hyd-ken-csa");
-        projectDTO1.setStartDate(LocalDate.of(2025, 07, 20));
-        projectDTO1.setDueDate(LocalDate.of(2026, 01, 25));
-
-        projectDTO2.setId(2L);
-        projectDTO2.setClientName(client1.getFirstName() + " " + client1.getLastName());
-        projectDTO2.setProjectName("Luxury Master Bedroom");
-        projectDTO2.setStatus(ProjectStatus.ON_HOLD);
-        projectDTO2.setBudget(BigDecimal.valueOf(5000.00));
-        projectDTO2.setDescription("Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
-        projectDTO2.setMeetingURL("https://meet.google.com/lhv-erf-oub");
-        projectDTO2.setStartDate(LocalDate.of(2025, 11, 10));
-        projectDTO2.setDueDate(LocalDate.of(2026, 5, 5));
-
-        List<ProjectDTO> projects = new ArrayList<>();
-        projects.add(projectDTO1);
-        projects.add(projectDTO2);
-
-        Page<ProjectDTO> mockPage = new PageImpl<>(projects);
+        Page<Project> mockPage = new PageImpl<>(projects);
 
         when(authenticationService.findUser("sam")).thenReturn(user);
 
         when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
-        when(projectRepository.findProjectsByDesignerId(user.getId(), pageable))
+        when(projectRepository.findAll(ArgumentMatchers.<Specification<Project>>any(), any(
+                Pageable.class)))
                 .thenReturn(mockPage);
 
-        // Act: Query the service layer the if all the designer's clients are returned
-        Page<ProjectDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable);
+        // Act: Query the service layer the if all the designer's projects are returned
+        Page<ProjectDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable, filter);
 
-        // Assert: Verifies that the result is not null and clients are retrieved
+        // Assert: Verifies that the result is not null and projects are retrieved
         assertNotNull(result);
         assertEquals(result.getTotalElements(), 2);
         assertThat(result).extracting(ProjectDTO::getId).containsExactly(1L, 2L);
         assertThat(result).extracting(ProjectDTO::getClientName).containsExactly(
                 "Jessica Cook", "Jessica Cook");
-        verify(projectRepository).findProjectsByDesignerId(any(), any(
-                Pageable.class));
+
         verifyNoMoreInteractions(projectRepository);
 
     }
@@ -341,25 +318,25 @@ public class ProjectServiceTest {
         // Arrange: Empty page is created and Mock Repository to test if it returns a
         // empty page
 
+        String filter = " ";
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ProjectDTO> mockPage = Page.empty();
+        Page<Project> mockPage = Page.empty();
 
         when(authenticationService.findUser("sam")).thenReturn(user);
 
         when(designerService.findDesigner(user.getId())).thenReturn(designer);
 
-        when(projectRepository.findProjectsByDesignerId(user.getId(), pageable))
+        when(projectRepository.findAll(ArgumentMatchers.<Specification<Project>>any(), any(
+                Pageable.class)))
                 .thenReturn(mockPage);
 
         // Act: Query the service layer if a empty page is returned
-        Page<ProjectDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable);
+        Page<ProjectDTO> result = projectService.getProjectsByDesigner(user.getUsername(), pageable, filter);
 
         // Assert: Verifies that the page is empty
         assertNotNull(result);
         assertEquals(result.getTotalElements(), 0);
-        verify(projectRepository).findProjectsByDesignerId(any(), any(
-                Pageable.class));
         verifyNoMoreInteractions(projectRepository);
 
     }
