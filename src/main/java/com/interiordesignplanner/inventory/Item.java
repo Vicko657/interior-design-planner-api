@@ -53,6 +53,6 @@ public class Item {
     private String link;
 
     @Schema(description = "Item ordered?", example = "false")
-    private boolean ordered;
+    private boolean isOrdered;
 
 }
