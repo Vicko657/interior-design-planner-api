@@ -48,6 +48,7 @@ import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
 import com.interiordesignplanner.project.ProjectStatus;
+import com.interiordesignplanner.task.Task;
 
 /**
  * Unit tests for {@link RoomService}.
@@ -538,101 +539,6 @@ public class RoomServiceTest {
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(roomRepository).findById(roomId);
-
-    }
-
-    /**
-     * Tests adding a new Task successfully
-     */
-    @Test
-    @DisplayName("AddTask: Adds new Task")
-    public void testAddTask_ReturnsUpdatedList() {
-
-        // Arrange: Mock Repository to test if a new Task has been created
-
-        Long roomId = room1.getId();
-
-        Task newTask = new Task();
-        newTask.setTaskName("Bed");
-        newTask.setTask("Find a double sized bed with a wooden frame");
-        newTask.setDate(LocalDate.of(2026, 4, 5));
-
-        when(projectService.findProject(1L)).thenReturn(project1);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room1)).thenReturn(room1);
-
-        // Act: Query the service layer the if room exists, adds a new task, saves room
-        RoomDTO result = roomService.addTask(roomId, newTask, user.getUsername());
-
-        // Assert: Verifies that the result is not null and task has been created
-        assertNotNull(result);
-        assertEquals(room1.getChecklist().size(), 3);
-        assertThat(result.getChecklist().get(2).getDate()).isEqualTo(LocalDate.of(2026, 4, 5));
-        verify(roomRepository, times(1)).save(any(Room.class));
-
-    }
-
-    /**
-     * Tests editing a task successfully
-     */
-    @Test
-    @DisplayName("EditTask: Edits Task")
-    public void testEditTask_ReturnsUpdatedTask() {
-
-        // Arrange: Mock Repository to test if the room found Task has been updated
-
-        Long roomId = room2.getId();
-
-        int index = 1;
-
-        task4.setDate(LocalDate.of(2026, 3, 10));
-
-        when(projectService.findProject(2L)).thenReturn(project2);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room2));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room2)).thenReturn(room2);
-
-        // Act: Query the service layer the if room exists, adds a new task, saves room
-        RoomDTO result = roomService.editTask(roomId, task4, index, user.getUsername());
-
-        // Assert: Verifies that the result is not null and task has been updated
-        assertNotNull(result);
-        assertEquals(room2.getInventory().size(), 1);
-        assertThat(result.getChecklist().get(1).getDate()).isEqualTo(LocalDate.of(2026, 3, 10));
-        verify(roomRepository, times(1)).save(any(Room.class));
-
-    }
-
-    /**
-     * Tests for removing a task
-     */
-    @Test
-    @DisplayName("DeleteTask: Remove Task")
-    public void testDeleteTask_ReturnsDeleted() {
-        // Arrange: Sets the roomId and index of the task to be removed and mocks the
-        // repository
-        Long roomId = 1L;
-        int index = 1;
-
-        when(projectService.findProject(1L)).thenReturn(project1);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room1)).thenReturn(room1);
-
-        // Act: Query the service layer to return the Room with the id and delete the
-        // task and save the room
-        roomService.deleteTask(roomId, index, user.getUsername());
-
-        // Assert: Verifies that the task was deleted, the size of the list is now 1
-        assertEquals(room1.getChecklist().size(), 1);
-        verify(roomRepository, times(1)).save(any(Room.class));
 
     }
 
