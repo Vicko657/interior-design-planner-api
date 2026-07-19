@@ -1,11 +1,14 @@
 package com.interiordesignplanner.task;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +39,23 @@ public class TaskController {
     // Task Service layer
     @Autowired
     public TaskService taskService;
+
+    /**
+     * Get: Returns designer's tasks
+     * 
+     * @return a page of tasks on the system
+     */
+    @Operation(summary = "Returns tasks", description = "Returns all the designers tasks")
+    @ApiResponse(responseCode = "200", description = "Returns all tasks")
+    @GetMapping(value = "designer/tasks", produces = "application/json")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<Page<TaskDTO>> getTasks(
+            @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails, Pageable pageable) {
+
+        return ResponseEntity.ok(taskService.getTasks(applicationUserDetails.getUsername(),
+                pageable));
+
+    }
 
     /**
      * PATCH: Adds new Task to Room

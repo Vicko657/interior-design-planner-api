@@ -232,6 +232,21 @@ public class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("GetTasks: Should return all Tasks")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void testGetTasks() throws Exception {
+        // Given
+
+        // When/Then
+        mockMvc.perform(get("/api/designer/tasks")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(4))).andExpect(jsonPath("$.content[0].projectName", is(
+                        "Coastal Escape")));
+
+    }
+
+    @Test
     @DisplayName("AddTask: Created a new Task")
     @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testAddTask() throws Exception {
