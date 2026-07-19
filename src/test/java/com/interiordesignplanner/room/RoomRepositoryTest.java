@@ -28,6 +28,7 @@ import com.interiordesignplanner.client.ClientRepository;
 import com.interiordesignplanner.dashboard.DashboardDTO.RecentTasks;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;

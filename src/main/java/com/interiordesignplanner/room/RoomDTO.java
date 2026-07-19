@@ -3,6 +3,7 @@ package com.interiordesignplanner.room;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.task.Task;
 
 import io.swagger.v3.oas.annotations.media.Schema;

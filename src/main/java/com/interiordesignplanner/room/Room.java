@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.interiordesignplanner.AbstractEntity;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.task.Task;
 
