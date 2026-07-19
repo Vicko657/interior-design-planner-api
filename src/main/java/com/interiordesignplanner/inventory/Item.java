@@ -1,4 +1,4 @@
-package com.interiordesignplanner.room;
+package com.interiordesignplanner.inventory;
 
 import java.math.BigDecimal;
 
