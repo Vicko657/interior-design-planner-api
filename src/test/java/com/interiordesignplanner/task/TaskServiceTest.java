@@ -23,14 +23,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.interiordesignplanner.authentication.AuthenticationService;
 import com.interiordesignplanner.authentication.Roles;
 import com.interiordesignplanner.authentication.User;
 import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.designer.Designer;
+import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
+import com.interiordesignplanner.project.ProjectDTO;
 import com.interiordesignplanner.project.ProjectStatus;
 import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomDTO;
@@ -58,6 +65,12 @@ public class TaskServiceTest {
     // Mock room service
     @Mock
     private RoomService roomService;
+
+    @Mock
+    private AuthenticationService authenticationService;
+
+    @Mock
+    private DesignerService designerService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -89,7 +102,7 @@ public class TaskServiceTest {
         });
 
         roomMapper = new RoomMapper(modelMapper);
-        taskService = new TaskService(roomRepository, roomService, roomMapper);
+        taskService = new TaskService(roomRepository, roomService, roomMapper, authenticationService, designerService);
 
         user = new User();
         user.setId(1L);
@@ -129,7 +142,7 @@ public class TaskServiceTest {
         project1 = new Project();
         project1.setId(1L);
         project1.setClient(client1);
-        project1.setProjectName("Industrial Loft Redesign");
+        project1.setProjectName("Luxury Master Bedroom");
         project1.setStatus(ProjectStatus.PLANNING);
         project1.setBudget(BigDecimal.valueOf(20000.00));
         project1.setDescription("Exposed brick walls, metal fixtures, and reclaimed wood accents");
@@ -197,6 +210,62 @@ public class TaskServiceTest {
 
         checkList2.add(task3);
         checkList2.add(task4);
+
+    }
+
+    /**
+     * Tests returning all Task successfully
+     */
+    @Test
+    @DisplayName("GetTasks: Returns tasks")
+    public void testGetTasks_ReturnsPage() {
+
+        // Arrange: A page created with tasks, pageable and mock Repository to test if
+        // all the designer's tasks are returned
+
+        TaskDTO task1 = new TaskDTO();
+        task1.setTaskName("Bed");
+        task1.setTask("Find a double sized bed with a wooden frame");
+        task1.setDate(LocalDate.of(2026, 4, 5));
+        task1.setProjectName("Luxury Master Bedroom");
+
+        TaskDTO task2 = new TaskDTO();
+        task2.setTaskName("Order Tiles");
+        task2.setTask("Wall tiles from Wickes");
+        task2.setDate(LocalDate.of(2026, 3, 10));
+        task2.setProjectName("Industrial Hallway Redesign");
+
+        TaskDTO task3 = new TaskDTO();
+        task3.setTaskName("Contractors");
+        task3.setTask("Call contractors before next meeting");
+        task3.setDate(LocalDate.of(2026, 5, 10));
+        task3.setProjectName("Industrial Hallway Redesign");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<TaskDTO> tasks = new ArrayList<>();
+
+        tasks.add(task1);
+        tasks.add(task2);
+        tasks.add(task3);
+
+        Page<TaskDTO> mockPage = new PageImpl<>(tasks);
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
+
+        when(roomRepository.findTasks(user.getId(), pageable)).thenReturn(mockPage);
+        ;
+
+        // Act: Query the service layer the if all the designer's tasks are returned
+        Page<TaskDTO> result = taskService.getTasks(user.getUsername(), pageable);
+
+        // Assert: Verifies that the result is not null and tasks are retrieved
+        assertNotNull(result);
+        assertEquals(result.getSize(), 3);
+        assertThat(result.getContent().get(0).getDate()).isEqualTo(LocalDate.of(2026, 4, 5));
+        assertThat(result.getContent().get(2).getProjectName()).isEqualTo("Industrial Hallway Redesign");
 
     }
 
