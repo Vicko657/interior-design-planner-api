@@ -44,6 +44,7 @@ import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.mapper.RoomMapper;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectService;
@@ -539,108 +540,6 @@ public class RoomServiceTest {
         // Assert: Verifies exception matches the thrown exception
         assertThat(exception.getMessage()).isEqualTo(errorMessage);
         verify(roomRepository).findById(roomId);
-
-    }
-
-    /**
-     * Tests adding a new Item successfully
-     */
-    @Test
-    @DisplayName("AddItem: Adds new Item")
-    public void testAddItem_ReturnsUpdatedList() {
-
-        // Arrange: Mock Repository to test if a new Item has been created
-
-        Long roomId = room1.getId();
-
-        Item newItem = new Item();
-        newItem.setImageUrl("/img/product3.png");
-        newItem.setItemName("Barstools");
-        newItem.setDescription(
-                "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
-        newItem.setPrice(BigDecimal.valueOf(152.00));
-        newItem.setQuantity(2);
-        newItem.setDimensions("W: 47, D: 51, H: 88cm");
-        newItem.setLink(
-                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino?variant=55388585918842&gad_source=1&gad_campaignid=21757503987&gbraid=0AAAAADNOeOVm_QYZzEg2oFlbs2I2wuZmD&gclid=CjwKCAjwjtTNBhB0EiwAuswYhjSsFcuAfKf4TY-c07OEm4GAnFZXefbe5Uv5vgGlEPwFGe4lq3lmUxoCJbIQAvD_BwE");
-
-        when(projectService.findProject(1L)).thenReturn(project1);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room1)).thenReturn(room1);
-
-        // Act: Query the service layer the if room exists, adds a new item, saves room
-        RoomDTO result = roomService.addItem(roomId, newItem, user.getUsername());
-
-        // Assert: Verifies that the result is not null and item has been added
-        assertNotNull(result);
-        assertEquals(room1.getInventory().size(), 2);
-        assertThat(result.getInventory().get(1).getPrice()).isEqualTo(BigDecimal.valueOf(152.00));
-        verify(roomRepository, times(1)).save(any(Room.class));
-
-    }
-
-    /**
-     * Tests editing a Item successfully
-     */
-    @Test
-    @DisplayName("EditItem: Edits Item")
-    public void testEditItem_ReturnsUpdatedItem() {
-
-        // Arrange: Mock Repository to test if the room found Item has been updated
-
-        Long roomId = room1.getId();
-
-        int index = 0;
-
-        item.setPrice(BigDecimal.valueOf(239.80));
-        item.setQuantity(2);
-
-        when(projectService.findProject(1L)).thenReturn(project1);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room1)).thenReturn(room1);
-
-        // Act: Query the service layer the if room exists, adds a new item, saves room
-        RoomDTO result = roomService.editItem(roomId, item, index, user.getUsername());
-
-        // Assert: Verifies that the result is not null and item has been updated
-        assertNotNull(result);
-        assertEquals(room1.getInventory().size(), 1);
-        assertThat(result.getInventory().get(0).getPrice()).isEqualTo(BigDecimal.valueOf(239.80));
-        verify(roomRepository, times(1)).save(any(Room.class));
-
-    }
-
-    /**
-     * Tests for removing a item
-     */
-    @Test
-    @DisplayName("DeleteItem: Remove Item")
-    public void testDeleteItem_ReturnsDeleted() {
-        // Arrange: Sets the roomId and index of the item to be removed and mocks the
-        // repository
-        Long roomId = 1L;
-        int index = 0;
-
-        when(projectService.findProject(1L)).thenReturn(project1);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room1));
-        when(authenticationService.findUser("sam")).thenReturn(user);
-
-        when(designerService.findDesigner(user.getId())).thenReturn(designer);
-        when(roomRepository.save(room1)).thenReturn(room1);
-
-        // Act: Query the service layer to return the Room with the id and delete the
-        // item and save the room
-        roomService.deleteItem(roomId, index, user.getUsername());
-
-        // Assert: Verifies that the task was deleted, the size of the list is now 0
-        assertEquals(room1.getInventory().size(), 0);
-        verify(roomRepository, times(1)).save(any(Room.class));
 
     }
 
