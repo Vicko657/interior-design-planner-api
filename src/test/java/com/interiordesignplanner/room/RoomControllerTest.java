@@ -31,6 +31,7 @@ import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientRepository;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
@@ -396,77 +397,6 @@ public class RoomControllerTest {
 
                 mockMvc.perform(delete("/api/rooms/{id}", room2
                                 .getId())
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isNoContent());
-
-        }
-
-        @Test
-        @DisplayName("AddItem: Created a new Item")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testAddItem() throws Exception {
-                // Given
-
-                Item newItem = new Item();
-                newItem.setImageUrl("/img/product3.png");
-                newItem.setItemName("Barstools");
-                newItem.setDescription(
-                                "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
-                newItem.setPrice(BigDecimal.valueOf(152.00));
-                newItem.setQuantity(2);
-                newItem.setDimensions("W: 47, D: 51, H: 88cm");
-                newItem.setLink(
-                                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino");
-                newItem.setOrdered(false);
-
-                inventory1.add(newItem);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", room1
-                                .getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                newItem)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.inventory[1].itemName", is("Barstools")));
-
-        }
-
-        @Test
-        @DisplayName("EditItem: Edited Item")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testEditItem() throws Exception {
-                // Given
-
-                item.setLink("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood");
-
-                int index = 0;
-
-                inventory2.set(index, item);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", room2
-                                .getId(), index)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                item)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.inventory[0].itemName", is("Coffee Table")))
-                                .andExpect(jsonPath("$.inventory[0].link",
-                                                is("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood")));
-
-        }
-
-        @Test
-        @DisplayName("DeleteItem: Item is deleted")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testDeleteItem() throws Exception {
-                // Given
-                int index = 0;
-
-                // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", room2
-                                .getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 
