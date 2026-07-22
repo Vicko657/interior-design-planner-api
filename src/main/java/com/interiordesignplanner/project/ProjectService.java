@@ -87,21 +87,63 @@ public class ProjectService {
     }
 
     /**
-     * Returns the designer's client's project details.
+     * Returns the designer's project details.
      * 
-     * @param username retrieves the projects assigned designer
+     * @param username retrieves the logged in user
+     * @param filter   the query for search
+     * @param pageable pagination info
      * @throws UsernameNotFoundException if the user is not found
      * @throws DesignerNotFoundException if the designer is not found
-     * @return logged in designer's list of projects
+     * @return logged in designer's paginated list of projects
      */
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('DESIGNER')")
-    public Page<ProjectDTO> getProjectsByDesigner(String username, Pageable pageable) {
+    public Page<ProjectDTO> getProjectsByDesigner(String username, Pageable pageable, String filter) {
 
         User user = authenticationService.findUser(username);
         Designer designer = designerService.findDesigner(user.getId());
 
-        return projectRepository.findProjectsByDesignerId(designer.getId(), pageable);
+        Specification<Project> spec = buildSpecification(filter, designer.getId());
+
+        Page<Project> projects = projectRepository.findAll(spec, pageable);
+
+        return projects.map(project -> {
+            ProjectDTO projectDTO = projectMapper.toDto(project);
+            return projectDTO;
+        });
+    }
+
+    /**
+     * Builds filtered project specification
+     * 
+     * @param designerId retrieves the projects assigned designer
+     * @param filter     the query for search
+     * @return project specification
+     */
+    private Specification<Project> buildSpecification(String filter, Long designerId) {
+
+        Specification<Project> spec;
+        Specification<Project> specfication = ownedBy(designerId);
+        Specification<Project> rsqlSpecfication = RSQLJPASupport.toSpecification(filter);
+
+        if (filter == null || filter.isBlank()) {
+            // default view no completed tasks
+            spec = specfication.and((root, cq, cb) -> cb.notEqual(root.get("status"), ProjectStatus.COMPLETED));
+        } else {
+            spec = specfication.and(rsqlSpecfication);
+        }
+
+        return spec;
+    }
+
+    /**
+     * Filters projects by owner via client
+     * 
+     * @param designerId retrieves the projects assigned designer
+     * @return owner's filtered project list
+     */
+    private Specification<Project> ownedBy(Long designerId) {
+        return ((root, cq, cb) -> cb.equal(root.get("client").get("designer").get("id"), designerId));
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.interiordesignplanner.room;
+package com.interiordesignplanner.inventory;
 
 import java.math.BigDecimal;
 
@@ -53,6 +53,6 @@ public class Item {
     private String link;
 
     @Schema(description = "Item ordered?", example = "false")
-    private boolean ordered;
+    private boolean isOrdered;
 
 }

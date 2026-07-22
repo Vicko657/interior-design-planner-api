@@ -191,14 +191,39 @@ public class ProjectControllerTest {
         @Test
         @DisplayName("GetProjects: Should return all Projects")
         @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testGetClients() throws Exception {
+        void testGetProjects() throws Exception {
 
                 mockMvc.perform(get("/api/projects")
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.content", hasSize(2)))
-                                .andExpect(jsonPath("$.content[0].clientName").value("Jessica Cook"))
+                                .andExpect(jsonPath("$.content[1].clientName").value("Jessica Cook"))
                                 .andExpect(jsonPath("$.content[1].dueDate", is("2026-05-05")));
+
+        }
+
+        @Test
+        @DisplayName("GetProjects: Should return active projects")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+        void testGetProjects_Active() throws Exception {
+
+                mockMvc.perform(get("/api/projects?filter=status==ACTIVE")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content", hasSize(1)))
+                                .andExpect(jsonPath("$.content[0].projectName").value("Luxury Master Bedroom"));
+
+        }
+
+        @Test
+        @DisplayName("GetProjects: Should return archived projects")
+        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+        void testGetProjects_Archived() throws Exception {
+
+                mockMvc.perform(get("/api/projects?filter=status==COMPLETED")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content", hasSize(0)));
 
         }
 

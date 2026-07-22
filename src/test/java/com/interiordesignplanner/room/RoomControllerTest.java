@@ -31,9 +31,11 @@ import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientRepository;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
+import com.interiordesignplanner.task.Task;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -395,141 +397,6 @@ public class RoomControllerTest {
 
                 mockMvc.perform(delete("/api/rooms/{id}", room2
                                 .getId())
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isNoContent());
-
-        }
-
-        @Test
-        @DisplayName("AddTask: Created a new Task")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testAddTask() throws Exception {
-                // Given
-
-                Task newTask = new Task();
-                newTask.setTaskName("Order Sofa");
-                newTask.setTask("Find a green or blue sofa");
-                newTask.setDate(LocalDate.of(2026, 3, 15));
-
-                checkList1.add(newTask);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task", room1
-                                .getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                newTask)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.checklist[2].taskName", is("Order Sofa")));
-
-        }
-
-        @Test
-        @DisplayName("EditTask: Edited Task")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testEditTask() throws Exception {
-                // Given
-
-                task.setTaskName("Kitchen Flooring");
-
-                int index = 0;
-
-                checkList1.set(index, task);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/task/{index}", room1
-                                .getId(), index)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                task)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.checklist[0].taskName", is("Kitchen Flooring")))
-                                .andExpect(jsonPath(
-                                                "$.checklist[0].task",
-                                                is("Remove floor tiles in the Kitchen")));
-
-        }
-
-        @Test
-        @DisplayName("DeleteTask: Task is deleted")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testDeleteTask() throws Exception {
-                // Given
-                int index = 1;
-
-                // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}/task/{index}", room2.getId(), index)
-                                .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isNoContent());
-
-        }
-
-        @Test
-        @DisplayName("AddItem: Created a new Item")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testAddItem() throws Exception {
-                // Given
-
-                Item newItem = new Item();
-                newItem.setImageUrl("/img/product3.png");
-                newItem.setItemName("Barstools");
-                newItem.setDescription(
-                                "Designed with a sumptuous velvet seat and a sturdy metal frame, this barstool offers both luxury and durability.");
-                newItem.setPrice(BigDecimal.valueOf(152.00));
-                newItem.setQuantity(2);
-                newItem.setDimensions("W: 47, D: 51, H: 88cm");
-                newItem.setLink(
-                                "https://dusk.com/products/mollie-set-of-2-barstools-cappuccino");
-                newItem.setOrdered(false);
-
-                inventory1.add(newItem);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory", room1
-                                .getId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                newItem)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.inventory[1].itemName", is("Barstools")));
-
-        }
-
-        @Test
-        @DisplayName("EditItem: Edited Item")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testEditItem() throws Exception {
-                // Given
-
-                item.setLink("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood");
-
-                int index = 0;
-
-                inventory2.set(index, item);
-
-                // When/Then
-                mockMvc.perform(patch("/api/rooms/{roomId}/inventory/{index}", room2
-                                .getId(), index)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(
-                                                item)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.inventory[0].itemName", is("Coffee Table")))
-                                .andExpect(jsonPath("$.inventory[0].link",
-                                                is("https://www.laura-james.co.uk/products/imogen-110cm-coffee-table-chalked-mangowood")));
-
-        }
-
-        @Test
-        @DisplayName("DeleteItem: Item is deleted")
-        @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void testDeleteItem() throws Exception {
-                // Given
-                int index = 0;
-
-                // When/Then
-                mockMvc.perform(delete("/api/rooms/{id}/inventory/{index}", room2
-                                .getId(), index)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isNoContent());
 

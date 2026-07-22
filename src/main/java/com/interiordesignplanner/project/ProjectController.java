@@ -60,20 +60,21 @@ public class ProjectController {
         }
 
         /**
-         * GET: Returns all Projects
+         * GET: Returns designer's projects
          * 
-         * @return all project entities on the system
-         * @response 200 if all projects are found
+         * @return a page of projects on the system
+         * @response 200 if projects are found
          */
-        @Operation(summary = "Returns all projects", description = "Returns all the designers projects")
-        @ApiResponse(responseCode = "200", description = "All projects are found")
+        @Operation(summary = "Returns designer's projects", description = "Returns all the designers projects")
+        @ApiResponse(responseCode = "200", description = "Projects are found")
         @ResponseStatus(HttpStatus.OK)
         @GetMapping(value = "/projects", produces = "application/json")
         @PreAuthorize("hasRole('DESIGNER')")
-        public Page<ProjectDTO> getDesignersProjects(
+        public ResponseEntity<Page<ProjectDTO>> getDesignersProjects(@RequestParam(required = false) String filter,
                         @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails,
                         Pageable pageable) {
-                return projectService.getProjectsByDesigner(applicationUserDetails.getUsername(), pageable);
+                return ResponseEntity.ok(projectService.getProjectsByDesigner(applicationUserDetails.getUsername(),
+                                pageable, filter));
         }
 
         /**

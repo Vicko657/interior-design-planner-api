@@ -195,49 +195,6 @@ public class ProjectRepositoryTest {
     }
 
     /**
-     * Tests if the projects can be found by their assigned client's, designer id
-     */
-    @Test
-    @DisplayName("FindByDesigner: Finds projects by Designer")
-    public void testfindByDesigner_ReturnsProjects() {
-
-        // Arrange: Prepare pageable with page size
-        Pageable pageable = PageRequest.of(0, 3);
-
-        // Act: Query repository with designer's id
-        Page<ProjectDTO> result = projectRepository.findProjectsByDesignerId(designer1.getId(), pageable);
-
-        // Assert: Verify results match expected clients
-        assertNotNull(result);
-        assertEquals(result.getSize(), 3);
-        assertEquals(result.getTotalPages(), 1);
-        assertEquals(result.getContent().get(0).getDescription(),
-                "Custom wardrobes, soft lighting, and premium fabrics for a hotel-like feel.");
-
-    }
-
-    /**
-     * Tests when the projects not found by Designer and returns a empty set
-     */
-    @Test
-    @DisplayName("FindByDesigner: Projects not found by designer")
-    public void testfindByDesignerReturnsEmptyList() {
-
-        // Arrange: Mock Repository to test if the projects with designer2Id are
-        // found
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // Act: Query the repository with the designer2Id and pageable
-        Page<ProjectDTO> result = projectRepository.findProjectsByDesignerId(designer2.getId(), pageable);
-
-        // Assert: Verifies result's page is empty
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-    }
-
-    /**
      * Tests for the total amount of active projects by designer id
      */
     @Test

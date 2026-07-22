@@ -31,14 +31,14 @@ import com.interiordesignplanner.client.Client;
 import com.interiordesignplanner.client.ClientRepository;
 import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerRepository;
+import com.interiordesignplanner.inventory.Item;
 import com.interiordesignplanner.project.Project;
 import com.interiordesignplanner.project.ProjectRepository;
 import com.interiordesignplanner.project.ProjectStatus;
-import com.interiordesignplanner.room.Item;
 import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomRepository;
 import com.interiordesignplanner.room.RoomType;
-import com.interiordesignplanner.room.Task;
+import com.interiordesignplanner.task.Task;
 
 @SpringBootTest
 @AutoConfigureMockMvc
