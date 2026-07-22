@@ -76,7 +76,6 @@ public class TaskControllerTest {
     private PasswordEncoder passwordEncoder;
 
     private Project project1, project2, project3;
-    private RoomUpdateDTO roomUpdateDTO;
     private Task task, task2, task3, task4;
     private List<Task> checkList1, checkList2;
     private Designer designer;
