@@ -228,6 +228,23 @@ public class InventoryControllerTest {
     }
 
     @Test
+    @DisplayName("GetInventories: Should return all Items")
+    @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    void testGetInventories() throws Exception {
+        // Given
+
+        // When/Then
+        mockMvc.perform(get("/api/designer/inventories")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2))).andExpect(jsonPath("$.content[0].totalPrice", is(
+                        399.75)))
+                .andExpect(jsonPath("$.content[1].itemName", is(
+                        "Coffee Table")));
+
+    }
+
+    @Test
     @DisplayName("AddItem: Created a new Item")
     @WithUserDetails(value = "sam", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     void testAddItem() throws Exception {

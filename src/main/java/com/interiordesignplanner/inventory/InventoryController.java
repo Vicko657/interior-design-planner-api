@@ -1,11 +1,14 @@
 package com.interiordesignplanner.inventory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.interiordesignplanner.room.RoomDTO;
 import com.interiordesignplanner.security.ApplicationUserDetails;
+import com.interiordesignplanner.task.TaskDTO;
 import com.interiordesignplanner.task.TaskService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +40,23 @@ public class InventoryController {
     // Inventory Service layer
     @Autowired
     public InventoryService inventoryService;
+
+    /**
+     * Get: Returns designer's project inventories
+     * 
+     * @return a page of items on the system
+     */
+    @Operation(summary = "Returns items", description = "Returns all the designers project inventories")
+    @ApiResponse(responseCode = "200", description = "Returns all items")
+    @GetMapping(value = "designer/inventories", produces = "application/json")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<Page<InventoryDTO>> getInventories(
+            @AuthenticationPrincipal ApplicationUserDetails applicationUserDetails, Pageable pageable) {
+
+        return ResponseEntity.ok(inventoryService.getInventories(applicationUserDetails.getUsername(),
+                pageable));
+
+    }
 
     /**
      * PATCH: Adds new item to Inventory
@@ -73,7 +94,7 @@ public class InventoryController {
      */
     @Operation(summary = "Edit item", description = "Edit item from inventory")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Task was added"),
+            @ApiResponse(responseCode = "200", description = "Item was editied"),
             @ApiResponse(responseCode = "404", description = "Room doesn't exist") })
     @PatchMapping(value = "/rooms/{roomId}/inventory/{index}", produces = "application/json")
     @PreAuthorize("hasRole('DESIGNER')")
