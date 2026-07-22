@@ -1,9 +1,13 @@
 package com.interiordesignplanner.inventory;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.interiordesignplanner.authentication.AuthenticationService;
+import com.interiordesignplanner.authentication.User;
+import com.interiordesignplanner.designer.Designer;
 import com.interiordesignplanner.designer.DesignerService;
 import com.interiordesignplanner.exceptions.RoomNotFoundException;
 import com.interiordesignplanner.mapper.RoomMapper;
@@ -11,6 +15,8 @@ import com.interiordesignplanner.room.Room;
 import com.interiordesignplanner.room.RoomDTO;
 import com.interiordesignplanner.room.RoomRepository;
 import com.interiordesignplanner.room.RoomService;
+import com.interiordesignplanner.task.TaskDTO;
+
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -30,6 +36,26 @@ public class InventoryService {
         this.roomMapper = roomMapper;
         this.authenticationService = authenticationService;
         this.designerService = designerService;
+    }
+
+    /**
+     * Returns the designer's project items.
+     * 
+     * 
+     * 
+     * @param username retrieves the logged in user
+     * @param pageable pagination info
+     * @return the list of items
+     */
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('DESIGNER')")
+    public Page<InventoryDTO> getInventories(String username, Pageable pageable) {
+
+        User user = authenticationService.findUser(username);
+
+        Designer designer = designerService.findDesigner(user.getId());
+
+        return roomRepository.findInventory(designer.getId(), pageable);
     }
 
     /**

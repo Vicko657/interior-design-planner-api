@@ -23,6 +23,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.interiordesignplanner.authentication.AuthenticationService;
@@ -39,6 +43,7 @@ import com.interiordesignplanner.room.RoomDTO;
 import com.interiordesignplanner.room.RoomRepository;
 import com.interiordesignplanner.room.RoomService;
 import com.interiordesignplanner.room.RoomType;
+import com.interiordesignplanner.task.TaskDTO;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName(value = "Inventory Service Test Suite")
@@ -178,6 +183,8 @@ public class InventoryServiceTest {
         item2.setLink(
                 "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
 
+        inventory1 = new ArrayList<>();
+
         room1 = new Room();
         room1.setId(1L);
         room1.setProject(project1);
@@ -202,6 +209,67 @@ public class InventoryServiceTest {
         room2.setUnit("m");
 
         inventory2.add(item);
+
+    }
+
+    /**
+     * Tests returning all Inventories successfully
+     */
+    @Test
+    @DisplayName("GetInventories: Returns inventories")
+    public void testGetInventories_ReturnsPage() {
+
+        // Arrange: A page created with items, pageable and mock Repository to test if
+        // all the designer's project inventories are returned
+
+        InventoryDTO item = new InventoryDTO();
+        item.setImageUrl("/img/product1.png");
+        item.setItemName("Coffee Table");
+        item.setDescription(
+                "Finished in chalked solid mango wood the Imogen coffee table features an oval table top and chunky curved legs. The chalked mango wood finish adds texture and shows the natural wood grain for a rustic look.");
+        item.setDimensions("H45cm W110cm D55cm");
+        item.setOrdered(true);
+        item.setPrice(BigDecimal.valueOf(119.99));
+        item.setQuantity(1);
+        item.setProjectName("Industrial Hallway Redesign");
+
+        InventoryDTO item2 = new InventoryDTO();
+        item2.setImageUrl("/img/product2.png");
+        item2.setItemName("Modern Minimalist Spanish Marble Copper Wall Sconce LED 1-Light");
+        item2.setDescription(
+                "Designed with a sleek minimalist profile, it combines a resin marble-effect body with subtle copper-toned details for a refined, contemporary look. ");
+        item2.setDimensions("40x6cm");
+        item2.setOrdered(false);
+        item2.setPrice(BigDecimal.valueOf(79.95));
+        item2.setQuantity(5);
+        item2.setLink(
+                "https://lassonliving.com/products/modern-minimalist-spanish-marble-copper-wall-sconce-led-1-light?currency=GBP&variant=52319038767450&utm_source=google&utm_medium=cpc&utm_campaign=Google%20Shopping&stkn=142a61490561&tw_source=google&tw_adid=&tw_campaign=23009353675&tw_kwdid=&gad_source=1&gad_campaignid=23009357257&gbraid=0AAAABBEvGio02gWJTA9FHptiW2zHPR6nK&gclid=CjwKCAjwjtTNBhB0EiwAuswYhtBMeo12PXoGWb6k-H7eZgOOV3jZ3PlZnxaMiBNW8DXZ8bySHsVKDhoCVe4QAvD_BwE");
+        item2.setProjectName("Industrial Hallway Redesign");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<InventoryDTO> items = new ArrayList<>();
+
+        items.add(item);
+        items.add(item2);
+
+        Page<InventoryDTO> mockPage = new PageImpl<>(items);
+
+        when(authenticationService.findUser("sam")).thenReturn(user);
+
+        when(designerService.findDesigner(user.getId())).thenReturn(designer);
+
+        when(roomRepository.findInventory(user.getId(), pageable)).thenReturn(mockPage);
+        ;
+
+        // Act: Query the service layer the if all the designer's items are returned
+        Page<InventoryDTO> result = inventoryService.getInventories(user.getUsername(), pageable);
+
+        // Assert: Verifies that the result is not null and items are retrieved
+        assertNotNull(result);
+        assertEquals(result.getSize(), 2);
+        assertThat(result.getContent().get(0).getPrice()).isEqualTo(BigDecimal.valueOf(119.99));
+        assertThat(result.getContent().get(1).getProjectName()).isEqualTo("Industrial Hallway Redesign");
 
     }
 
